@@ -1,0 +1,90 @@
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Database files (local dev only)
+*.db
+*.sqlite
+*.sqlite3
+clinic.sqlite3
+
+# CSV and text data files
+*.csv
+*.txt
+allmeds.txt
+medicines.csv
+patients.csv
+visits.csv
+
+# Extract scripts (local dev only)
+extract_*.py
+
+# Documentation (keep only README)
+*.md
+!README.md
+AUTH_SETUP_COMPLETE.md
+COMPLETE_PROJECT_SETUP_SPECIFICATION.md
+INAUGURAL_USER_INSERTION_SPECIFICATION.md
+
+# Patient images (sensitive data - don't push to repo)
+backend/patient_images/
+backend/src/patient_images/
+frontend/public/patient_images/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/

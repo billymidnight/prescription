@@ -1,0 +1,81 @@
+.edit-visit-modal {
+  max-width: 700px;
+}
+
+.patient-info-readonly {
+  background: linear-gradient(135deg, var(--primary-light), #f8f9ff);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.info-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-row span {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.info-row strong {
+  color: var(--primary-dark);
+  margin-right: 0.5rem;
+}
+
+.form-actions-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.btn-delete-visit {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-delete-visit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.5);
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.form-group.full-width {
+  grid-column: span 2;
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-group.full-width {
+    grid-column: span 1;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

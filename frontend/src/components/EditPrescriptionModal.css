@@ -1,0 +1,212 @@
+.edit-prescription-modal {
+  max-width: 800px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.edit-prescription-modal .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.edit-prescription-modal label {
+  display: block;
+  font-weight: 600;
+  color: #8B4513;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.edit-prescription-modal textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #E8D5C4;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.edit-prescription-modal textarea:focus {
+  outline: none;
+  border-color: #A0522D;
+}
+
+.medicines-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #FFF8F0, #F5EBE0);
+  border-radius: 12px;
+  border: 2px solid #E8D5C4;
+}
+
+.medicines-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.medicines-header h3 {
+  color: #8B4513;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.add-medicine-btn {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.add-medicine-btn:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.medicine-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr auto;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  align-items: end;
+}
+
+.medicine-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.medicine-name-field {
+  position: relative;
+}
+
+.medicine-field input,
+.medicine-field select {
+  padding: 0.6rem;
+  border: 2px solid #E8D5C4;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.medicine-field input:focus,
+.medicine-field select:focus {
+  outline: none;
+  border-color: #A0522D;
+}
+
+.medicine-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 2px solid #E8D5C4;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 0.25rem;
+}
+
+.medicine-option {
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.medicine-option:hover {
+  background: #FFF8F0;
+}
+
+.remove-medicine-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+  border: none;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.remove-medicine-btn:hover {
+  background: linear-gradient(135deg, #d32f2f, #c62828);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #E8D5C4;
+  margin-top: 1.5rem;
+}
+
+.btn-cancel,
+.btn-save {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background: #d0d0d0;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #8B4513, #A0522D);
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #A0522D, #CD853F);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.4);
+}
+
+.btn-cancel:disabled,
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .medicine-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .remove-medicine-btn {
+    width: 100%;
+  }
+}

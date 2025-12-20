@@ -1,0 +1,144 @@
+.medicine-page {
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-dark), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-add-medicine {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-add-medicine:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+}
+
+.medicines-table {
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+
+.medicines-table thead {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.medicines-table th {
+  padding: 1.25rem 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.medicines-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.medicines-table tbody tr:hover {
+  background: var(--primary-light);
+  transform: translateX(4px);
+}
+
+.medicines-table td {
+  padding: 1rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.patient-link {
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.patient-link.clickable {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.patient-link.clickable:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.patient-link.disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.amount {
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.payment-badge {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.btn-edit-icon {
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  border-radius: 8px;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-edit-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .medicines-table {
+    min-width: 800px;
+  }
+}

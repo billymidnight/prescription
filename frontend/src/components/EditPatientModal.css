@@ -1,0 +1,34 @@
+.edit-modal {
+  max-width: 650px;
+}
+
+.disabled-input {
+  background: #f0f0f0 !important;
+  color: #999 !important;
+  cursor: not-allowed !important;
+  border-color: #ddd !important;
+}
+
+.current-image {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--primary-light);
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.preview-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.current-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
