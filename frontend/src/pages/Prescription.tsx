@@ -96,13 +96,15 @@ export default function Prescription() {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to top when component loads
     const visitId = searchParams.get('visit_id');
+    console.log('🔍 [Prescription] URL visit_id:', visitId);
     if (visitId) {
       setFormData(prev => ({ ...prev, visit_id: visitId }));
       fetchVisit(visitId);
     }
-  }, [searchParams]);
+  }, [searchParams, searchParams.get('visit_id')]);
 
   const fetchVisit = async (visitId: string) => {
+    console.log('📋 [fetchVisit] Starting fetch for visit_id:', visitId);
     if (!visitId || visitId.trim() === '') {
       setVisit(null);
       setPatient(null);
@@ -128,10 +130,12 @@ export default function Prescription() {
         .eq('visit_id', parseInt(visitId))
         .single();
 
+      console.log('✅ [fetchVisit] Visit data:', visitData);
       if (visitError) throw visitError;
 
       if (visitData) {
         setVisit(visitData);
+        console.log('✅ [fetchVisit] Set visit state');
         
         // Then fetch the patient using patient_id from visit
         const { data: patientData, error: patientError } = await supabase
@@ -140,10 +144,12 @@ export default function Prescription() {
           .eq('patient_id', visitData.patient_id)
           .single();
 
+        console.log('✅ [fetchVisit] Patient data:', patientData);
         if (patientError) throw patientError;
 
         if (patientData) {
           setPatient(patientData);
+          console.log('✅ [fetchVisit] Set patient state');
           const age = new Date().getFullYear() - patientData.year_of_birth;
           
           // Check if prescription already exists for this visit
@@ -339,84 +345,87 @@ export default function Prescription() {
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
             font-family: Arial, sans-serif;
-            padding: 40px;
+            padding: 15px;
             background: white;
             color: #333;
           }
           .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #E8D5C4;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #E8D5C4;
           }
           .header h1 {
             color: #D4B5A0;
-            font-size: 32px;
-            margin-bottom: 8px;
+            font-size: 20px;
+            margin-bottom: 3px;
           }
           .header p {
             color: #666;
-            font-size: 14px;
+            font-size: 10px;
           }
           .patient-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px 30px;
-            margin-bottom: 30px;
-            padding: 20px;
+            gap: 6px 15px;
+            margin-bottom: 10px;
+            padding: 10px;
             background: #FDFBF7;
-            border-radius: 8px;
+            border-radius: 4px;
           }
           .info-field {
             display: flex;
-            gap: 10px;
+            gap: 8px;
           }
           .info-label {
             font-weight: bold;
             color: #555;
-            min-width: 140px;
+            min-width: 100px;
+            font-size: 10px;
           }
           .info-value {
             color: #333;
+            font-size: 10px;
           }
           .section {
-            margin-bottom: 25px;
+            margin-bottom: 10px;
           }
           .section-title {
-            font-size: 18px;
+            font-size: 11px;
             font-weight: bold;
             color: #D4B5A0;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #E8D5C4;
+            margin-bottom: 4px;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #E8D5C4;
           }
           .section-content {
-            padding: 15px;
+            padding: 6px;
             background: #FDFBF7;
-            border-radius: 8px;
-            line-height: 1.8;
+            border-radius: 4px;
+            line-height: 1.4;
             white-space: pre-wrap;
+            font-size: 9px;
           }
           .medicines-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 8px;
+            border-radius: 4px;
             overflow: hidden;
           }
           .medicines-table th {
             background: #E8D5C4;
             color: #444;
             font-weight: 700;
-            padding: 12px;
+            padding: 5px;
             text-align: left;
-            border-bottom: 2px solid #D4B5A0;
-            font-size: 14px;
+            border-bottom: 1px solid #D4B5A0;
+            font-size: 9px;
           }
           .medicines-table td {
-            padding: 12px;
+            padding: 5px;
             border-bottom: 1px solid #E8D5C4;
-            font-size: 13px;
+            font-size: 9px;
             color: #333;
           }
           .medicines-table tbody tr:last-child td {
@@ -426,100 +435,104 @@ export default function Prescription() {
             background: #FDFBF7;
           }
           .signature-section {
-            margin-top: 50px;
-            margin-bottom: 30px;
+            margin-top: 15px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: flex-end;
-            padding-right: 50px;
+            padding-right: 30px;
           }
           .signature-box {
             text-align: center;
-            min-width: 250px;
+            min-width: 150px;
           }
           .signature-line {
-            height: 60px;
-            border-bottom: 2px solid #333;
-            margin-bottom: 8px;
+            height: 30px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 3px;
           }
           .signature-label {
-            font-size: 13px;
+            font-size: 9px;
             color: #666;
             font-weight: 600;
           }
           .footer {
-            margin-top: 60px;
-            padding-top: 30px;
-            border-top: 3px double #D4B5A0;
+            margin-top: 15px;
+            padding-top: 8px;
+            border-top: 2px solid #D4B5A0;
             background: linear-gradient(to bottom, transparent, #FDFBF7);
           }
           .doctor-info {
             text-align: center;
-            padding: 25px;
+            padding: 8px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
             border: 1px solid #E8D5C4;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
           }
           .doctor-info h3 {
-            font-size: 22px;
+            font-size: 12px;
             color: #D4B5A0;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
           }
           .designation {
-            font-size: 15px;
+            font-size: 9px;
             color: #555;
             font-weight: 600;
-            margin-bottom: 3px;
+            margin-bottom: 1px;
           }
           .reg-no {
-            font-size: 13px;
+            font-size: 8px;
             color: #888;
             font-style: italic;
-            margin-bottom: 12px;
+            margin-bottom: 4px;
           }
           .specialities {
-            font-size: 13px;
+            font-size: 8px;
             color: #444;
-            padding: 10px 15px;
+            padding: 4px 8px;
             background: #F5EBE0;
-            border-radius: 8px;
-            margin: 12px auto;
+            border-radius: 4px;
+            margin: 4px auto;
             max-width: 90%;
-            border-left: 4px solid #C9A88D;
+            border-left: 2px solid #C9A88D;
           }
           .specialities strong {
             color: #D4B5A0;
             font-weight: 700;
           }
           .contact-info {
-            margin-top: 15px;
-            padding-top: 15px;
+            margin-top: 6px;
+            padding-top: 6px;
             border-top: 1px solid #E8D5C4;
           }
           .address {
-            font-size: 13px;
+            font-size: 8px;
             color: #555;
-            margin-bottom: 8px;
-            line-height: 1.6;
+            margin-bottom: 3px;
+            line-height: 1.3;
           }
           .phone {
-            font-size: 14px;
+            font-size: 8px;
             color: #444;
             font-weight: 600;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
           }
           .generation-date {
             text-align: center;
             color: #999;
-            font-size: 11px;
+            font-size: 7px;
             font-style: italic;
-            margin-top: 10px;
+            margin-top: 4px;
           }
           @media print {
-            body { padding: 20px; }
+            @page {
+              margin: 8mm;
+              size: A4;
+            }
+            body { padding: 0; }
             .footer { page-break-inside: avoid; }
             .signature-section { page-break-inside: avoid; }
           }
