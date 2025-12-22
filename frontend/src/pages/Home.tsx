@@ -21,7 +21,7 @@ export default function Home() {
       )}
 
       <div className="welcome-section">
-        <h1 className="page-title">Welcome to Dr. Karthika Skin Care</h1>
+        <h1 className="page-title">Welcome to Dr. Karthika Skin Clinic</h1>
         <p className="page-subtitle">
           Your trusted partner in dermatological care and prescription management
         </p>

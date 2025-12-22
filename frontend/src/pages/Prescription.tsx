@@ -527,7 +527,7 @@ export default function Prescription() {
       </head>
       <body>
         <div class="header">
-          <h1>Dr. Karthika Skin Care</h1>
+          <h1>Dr. Karthika Skin Clinic</h1>
           <p>Dermatology & Skin Care Clinic</p>
         </div>
 

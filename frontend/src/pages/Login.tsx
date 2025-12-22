@@ -139,7 +139,7 @@ export default function Login() {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <h1 className="login-title">Dr. Karthika Skin Care</h1>
+          <h1 className="login-title">Dr. Karthika Skin Clinic</h1>
           <p className="login-subtitle">Dermatology & Skin Care Management</p>
         </div>
 

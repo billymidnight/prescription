@@ -20,7 +20,7 @@ export default function TopNav() {
   return (
     <nav className="top-nav">
       <div className="top-nav-brand">
-        <h1>Dr. Karthika Skin Care</h1>
+        <h1>Dr. Karthika Skin Clinic</h1>
       </div>
       <div className="top-nav-user">
         <div className="user-info">
