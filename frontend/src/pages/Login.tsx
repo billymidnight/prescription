@@ -54,13 +54,28 @@ export default function Login() {
       console.log('📧 [Login] EMAIL:', email);
       console.log('👤 [Login] User ID:', data.user.id);
 
+      // Fetch full user data including approved status
+      const meResp = await fetch(`${apiBase}/auth/me`, {
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${token}` 
+        },
+      });
+
+      let userData: any = null;
+      if (meResp.ok) {
+        userData = await meResp.json();
+        console.log('✅ [Login] User data fetched:', userData);
+      }
+
       // Update auth store
       setAccessToken(token);
       setUser({
         user_id: data.user.id,
         email: data.user.email || '',
-        username: data.user.email?.split('@')[0],
-        role: 'doctor',
+        username: userData?.screenname || data.user.email?.split('@')[0],
+        role: userData?.role || 'STAFF',
+        approved: userData?.approved ?? false,
       });
 
       // Show welcome message for inaugural login
@@ -102,24 +117,6 @@ export default function Login() {
       if (signUpError) throw signUpError;
 
       if (data.user) {
-        // If session exists (auto-login), create user row immediately
-        if (data.session) {
-          const token = data.session.access_token;
-          try {
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-            await fetch(`${apiBase}/auth/create_user`, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-              },
-              body: JSON.stringify({ email }),
-            });
-          } catch (err) {
-            console.warn('create_user call failed during signup', err);
-          }
-        }
-
         setSuccess('Account created successfully! Please check your email to verify your account.');
         setEmail('');
         setPassword('');

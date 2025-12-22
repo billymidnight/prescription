@@ -13,7 +13,9 @@ export default function TopNav() {
     navigate('/');
   };
 
+  // Show screenname if available, otherwise email (without @domain)
   const displayName = user?.username || user?.email?.split('@')[0] || 'User';
+  const userRole = user?.role || 'STAFF';
 
   return (
     <nav className="top-nav">
@@ -23,10 +25,13 @@ export default function TopNav() {
       <div className="top-nav-user">
         <div className="user-info">
           <div className="user-avatar">
-            {user?.email?.charAt(0).toUpperCase() || 'U'}
+            {(user?.username || user?.email)?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="user-details">
-            <span className="user-name">{displayName}</span>
+            <div className="user-name-row">
+              <span className="user-name">{displayName}</span>
+              <span className={`role-badge ${userRole.toLowerCase()}`}>{userRole}</span>
+            </div>
             <span className="user-email">{user?.email || ''}</span>
           </div>
         </div>

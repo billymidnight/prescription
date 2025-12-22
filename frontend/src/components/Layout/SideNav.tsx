@@ -6,6 +6,21 @@ import './SideNav.css';
 export default function SideNav() {
   const { user } = useAuthStore();
   const isDoctor = user?.role === 'DOCTOR';
+  const isApproved = user?.approved ?? false;
+
+  // If not approved, show minimal nav
+  if (!isApproved) {
+    return (
+      <aside className="side-nav">
+        <nav className="side-nav-menu">
+          <NavLink to="/home" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+            <span className="nav-icon">🏠</span>
+            <span className="nav-text">Home</span>
+          </NavLink>
+        </nav>
+      </aside>
+    );
+  }
 
   return (
     <aside className="side-nav">

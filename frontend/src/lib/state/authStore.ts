@@ -7,6 +7,7 @@ interface User {
   email: string;
   username?: string;
   role?: string;
+  approved?: boolean;
 }
 
 interface AuthState {
@@ -81,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
                     email: userData.email || session.user.email || '',
                     username: userData.screenname || session.user.email?.split('@')[0],
                     role: userData.role,
+                    approved: userData.approved,
                   },
                   isAuthenticated: true
                 });
@@ -94,6 +96,7 @@ export const useAuthStore = create<AuthState>()(
                     email: session.user.email || '',
                     username: session.user.email?.split('@')[0],
                     role: 'STAFF', // Default fallback
+                    approved: false,
                   },
                   isAuthenticated: true
                 });
@@ -108,6 +111,7 @@ export const useAuthStore = create<AuthState>()(
                   email: session.user.email || '',
                   username: session.user.email?.split('@')[0],
                   role: 'STAFF', // Default fallback
+                  approved: false,
                 },
                 isAuthenticated: true
               });
@@ -157,6 +161,7 @@ export const useAuthStore = create<AuthState>()(
                       email: userData.email || session.user.email || '',
                       username: userData.screenname || session.user.email?.split('@')[0],
                       role: userData.role,
+                      approved: userData.approved,
                     },
                     isAuthenticated: true
                   });
@@ -169,6 +174,7 @@ export const useAuthStore = create<AuthState>()(
                       email: session.user.email || '',
                       username: session.user.email?.split('@')[0],
                       role: 'STAFF',
+                      approved: false,
                     },
                     isAuthenticated: true
                   });
@@ -182,6 +188,7 @@ export const useAuthStore = create<AuthState>()(
                     email: session.user.email || '',
                     username: session.user.email?.split('@')[0],
                     role: 'STAFF',
+                    approved: false,
                   },
                   isAuthenticated: true
                 });

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useAuthStore } from './lib/state/authStore';
-import { ProtectedRoute, PublicRoute, RootRedirect } from './router';
+import { ProtectedRoute, ApprovedRoute, PublicRoute, RootRedirect } from './router';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Prescription from './pages/Prescription';
@@ -27,14 +27,14 @@ export default function App() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/home" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
-        <Route path="/prescription" element={<ProtectedRoute><Layout><Prescription /></Layout></ProtectedRoute>} />
-        <Route path="/patients-db" element={<ProtectedRoute><Layout><PatientsDB /></Layout></ProtectedRoute>} />
-        <Route path="/patient/:patientId" element={<ProtectedRoute><Layout><PatientCard /></Layout></ProtectedRoute>} />
-        <Route path="/drug-order" element={<ProtectedRoute><Layout><DrugOrder /></Layout></ProtectedRoute>} />
-        <Route path="/tests" element={<ProtectedRoute><Layout><Tests /></Layout></ProtectedRoute>} />
-        <Route path="/medicine" element={<ProtectedRoute><Layout><Medicine /></Layout></ProtectedRoute>} />
-        <Route path="/financials" element={<ProtectedRoute><Layout><Financials /></Layout></ProtectedRoute>} />
-        <Route path="/staff-overview" element={<ProtectedRoute><Layout><StaffOverview /></Layout></ProtectedRoute>} />
+        <Route path="/prescription" element={<ApprovedRoute><Layout><Prescription /></Layout></ApprovedRoute>} />
+        <Route path="/patients-db" element={<ApprovedRoute><Layout><PatientsDB /></Layout></ApprovedRoute>} />
+        <Route path="/patient/:patientId" element={<ApprovedRoute><Layout><PatientCard /></Layout></ApprovedRoute>} />
+        <Route path="/drug-order" element={<ApprovedRoute><Layout><DrugOrder /></Layout></ApprovedRoute>} />
+        <Route path="/tests" element={<ApprovedRoute><Layout><Tests /></Layout></ApprovedRoute>} />
+        <Route path="/medicine" element={<ApprovedRoute><Layout><Medicine /></Layout></ApprovedRoute>} />
+        <Route path="/financials" element={<ApprovedRoute><Layout><Financials /></Layout></ApprovedRoute>} />
+        <Route path="/staff-overview" element={<ApprovedRoute><Layout><StaffOverview /></Layout></ApprovedRoute>} />
       </Routes>
     </BrowserRouter>
   );

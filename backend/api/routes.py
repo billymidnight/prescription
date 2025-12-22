@@ -109,6 +109,7 @@ def auth_create_user():
             'email': email or None,
             'screenname': resolved_screen,
             'role': 'STAFF',
+            'approved': False,
         }
         
         try:
