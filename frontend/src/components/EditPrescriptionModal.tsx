@@ -6,6 +6,8 @@ import './EditPrescriptionModal.css';
 interface Medicine {
   id: string;
   name: string;
+  medicine_form: string;
+  quantity: string;
   frequency: string;
   duration: string;
 }
@@ -23,7 +25,11 @@ const FREQUENCY_OPTIONS = [
   'Twice daily',
   'Three times daily',
   'Once at night',
+  'Once in a week',
   'Twice a week',
+  'Thrice a week',
+  'Once a day',
+  'Once a month',
   'As needed',
   'CUSTOM',
 ];
@@ -38,6 +44,33 @@ const DURATION_OPTIONS = [
   '1 month',
   '2 months',
   '3 months',
+  'CUSTOM',
+];
+
+const MEDICINE_FORM_OPTIONS = [
+  'Tablet',
+  'Capsule',
+  'Syrup',
+  'Cream',
+  'Ointment',
+  'Drops',
+  'Injection',
+  'N/A',
+  'CUSTOM',
+];
+
+const QUANTITY_OPTIONS = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '10mg',
+  '20mg',
+  '50mg',
+  '100mg',
+  '250mg',
+  '500mg',
   'CUSTOM',
 ];
 
@@ -57,6 +90,11 @@ export default function EditPrescriptionModal({
   const [loading, setLoading] = useState(false);
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
+  const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
+  const [customFormMode, setCustomFormMode] = useState<Record<string, boolean>>({});
+  const [customQuantityMode, setCustomQuantityMode] = useState<Record<string, boolean>>({});
+  const [customFrequencyMode, setCustomFrequencyMode] = useState<Record<string, boolean>>({});
+  const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (isOpen && prescriptionId) {
@@ -87,6 +125,8 @@ export default function EditPrescriptionModal({
       const loadedMedicines = medsData?.map((med) => ({
         id: med.medicine_id.toString(),
         name: med.medicine_name,
+        medicine_form: med.medicine_form || 'Tablet',
+        quantity: med.quantity || '1',
         frequency: med.frequency,
         duration: med.duration,
       })) || [];
@@ -118,7 +158,7 @@ export default function EditPrescriptionModal({
       ...formData,
       medicines: [
         ...formData.medicines,
-        { id: newId, name: '', frequency: '', duration: '' },
+        { id: newId, name: '', medicine_form: 'Tablet', quantity: '1', frequency: 'Once daily', duration: '1 month' },
       ],
     });
   };
@@ -186,6 +226,8 @@ export default function EditPrescriptionModal({
         const medicinesData = formData.medicines.map((med) => ({
           prescription_id: prescriptionId,
           medicine_name: med.name,
+          medicine_form: med.medicine_form,
+          quantity: med.quantity,
           frequency: med.frequency,
           duration: med.duration,
         }));
@@ -270,63 +312,235 @@ export default function EditPrescriptionModal({
                   <div key={medicine.id} className="medicine-row">
                     <div className="medicine-field medicine-name-field">
                       <label>Medicine Name</label>
-                      <input
-                        type="text"
-                        value={medicineSearchTerms[medicine.id] ?? medicine.name}
-                        onChange={(e) => handleMedicineSearch(medicine.id, e.target.value)}
-                        onFocus={() =>
-                          setShowMedicineDropdown({
-                            ...showMedicineDropdown,
-                            [medicine.id]: medicine.name.length > 0,
-                          })
-                        }
-                        placeholder="Search medicine..."
-                      />
-                      {showMedicineDropdown[medicine.id] && (
-                        <div className="medicine-dropdown">
-                          {getFilteredMedicines(medicineSearchTerms[medicine.id] || medicine.name).map(
-                            (med, idx) => (
-                              <div
-                                key={idx}
-                                className="medicine-option"
-                                onClick={() => selectMedicine(medicine.id, med)}
-                              >
-                                {med}
-                              </div>
-                            )
-                          )}
+                      {customMedicineMode[medicine.id] ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={medicine.name}
+                            onChange={(e) => updateMedicine(medicine.id, 'name', e.target.value)}
+                            placeholder="Enter custom medicine name..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomMedicineMode({ ...customMedicineMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'name', '');
+                            }}
+                            style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
+                          >
+                            ← Back to search
+                          </button>
                         </div>
+                      ) : (
+                        <>
+                          <input
+                            type="text"
+                            value={medicineSearchTerms[medicine.id] ?? medicine.name}
+                            onChange={(e) => handleMedicineSearch(medicine.id, e.target.value)}
+                            onFocus={() =>
+                              setShowMedicineDropdown({
+                                ...showMedicineDropdown,
+                                [medicine.id]: medicine.name.length > 0,
+                              })
+                            }
+                            placeholder="Search medicine..."
+                          />
+                          {showMedicineDropdown[medicine.id] && (
+                            <div className="medicine-dropdown">
+                              <div
+                                className="medicine-option"
+                                style={{ fontWeight: 'bold', borderBottom: '1px solid #ddd' }}
+                                onClick={() => {
+                                  setCustomMedicineMode({ ...customMedicineMode, [medicine.id]: true });
+                                  updateMedicine(medicine.id, 'name', '');
+                                  setShowMedicineDropdown({ ...showMedicineDropdown, [medicine.id]: false });
+                                }}
+                              >
+                                ✏️ CUSTOM - Enter manually
+                              </div>
+                              {getFilteredMedicines(medicineSearchTerms[medicine.id] || medicine.name).map(
+                                (med, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="medicine-option"
+                                    onClick={() => selectMedicine(medicine.id, med)}
+                                  >
+                                    {med}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    <div className="medicine-field">
+                      <label>Form</label>
+                      {customFormMode[medicine.id] ? (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Enter custom form"
+                            value={medicine.medicine_form}
+                            onChange={(e) => updateMedicine(medicine.id, 'medicine_form', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomFormMode({ ...customFormMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'medicine_form', 'Tablet');
+                            }}
+                            style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
+                          >
+                            ← Back to dropdown
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          value={medicine.medicine_form}
+                          onChange={(e) => {
+                            if (e.target.value === 'CUSTOM') {
+                              setCustomFormMode({ ...customFormMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'medicine_form', '');
+                            } else {
+                              updateMedicine(medicine.id, 'medicine_form', e.target.value);
+                            }
+                          }}
+                        >
+                          {MEDICINE_FORM_OPTIONS.map((form) => (
+                            <option key={form} value={form}>
+                              {form}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div className="medicine-field">
+                      <label>Quantity</label>
+                      {customQuantityMode[medicine.id] ? (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Enter custom quantity"
+                            value={medicine.quantity}
+                            onChange={(e) => updateMedicine(medicine.id, 'quantity', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'quantity', '1');
+                            }}
+                            style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
+                          >
+                            ← Back to dropdown
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          value={medicine.quantity}
+                          onChange={(e) => {
+                            if (e.target.value === 'CUSTOM') {
+                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'quantity', '');
+                            } else {
+                              updateMedicine(medicine.id, 'quantity', e.target.value);
+                            }
+                          }}
+                        >
+                          {QUANTITY_OPTIONS.map((qty) => (
+                            <option key={qty} value={qty}>
+                              {qty}
+                            </option>
+                          ))}
+                        </select>
                       )}
                     </div>
 
                     <div className="medicine-field">
                       <label>Frequency</label>
-                      <select
-                        value={medicine.frequency}
-                        onChange={(e) => updateMedicine(medicine.id, 'frequency', e.target.value)}
-                      >
-                        <option value="">Select frequency</option>
-                        {FREQUENCY_OPTIONS.map((freq) => (
-                          <option key={freq} value={freq}>
-                            {freq}
-                          </option>
-                        ))}
-                      </select>
+                      {customFrequencyMode[medicine.id] ? (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Enter custom frequency"
+                            value={medicine.frequency}
+                            onChange={(e) => updateMedicine(medicine.id, 'frequency', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomFrequencyMode({ ...customFrequencyMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'frequency', 'Once daily');
+                            }}
+                            style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
+                          >
+                            ← Back to dropdown
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          value={medicine.frequency}
+                          onChange={(e) => {
+                            if (e.target.value === 'CUSTOM') {
+                              setCustomFrequencyMode({ ...customFrequencyMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'frequency', '');
+                            } else {
+                              updateMedicine(medicine.id, 'frequency', e.target.value);
+                            }
+                          }}
+                        >
+                          {FREQUENCY_OPTIONS.map((freq) => (
+                            <option key={freq} value={freq}>
+                              {freq}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
 
                     <div className="medicine-field">
                       <label>Duration</label>
-                      <select
-                        value={medicine.duration}
-                        onChange={(e) => updateMedicine(medicine.id, 'duration', e.target.value)}
-                      >
-                        <option value="">Select duration</option>
-                        {DURATION_OPTIONS.map((dur) => (
-                          <option key={dur} value={dur}>
-                            {dur}
-                          </option>
-                        ))}
-                      </select>
+                      {customDurationMode[medicine.id] ? (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Enter custom duration"
+                            value={medicine.duration}
+                            onChange={(e) => updateMedicine(medicine.id, 'duration', e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomDurationMode({ ...customDurationMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'duration', '1 month');
+                            }}
+                            style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
+                          >
+                            ← Back to dropdown
+                          </button>
+                        </div>
+                      ) : (
+                        <select
+                          value={medicine.duration}
+                          onChange={(e) => {
+                            if (e.target.value === 'CUSTOM') {
+                              setCustomDurationMode({ ...customDurationMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'duration', '');
+                            } else {
+                              updateMedicine(medicine.id, 'duration', e.target.value);
+                            }
+                          }}
+                        >
+                          {DURATION_OPTIONS.map((dur) => (
+                            <option key={dur} value={dur}>
+                              {dur}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
 
                     <button
