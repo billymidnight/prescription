@@ -27,6 +27,7 @@ interface Visit {
   patient_id: number;
   weight: string;
   blood_pressure: string;
+  pulse: string;
   date: string;
 }
 
@@ -37,6 +38,7 @@ interface PrescriptionData {
   date: string;
   age: string;
   blood_pressure: string;
+  pulse: string;
   gender: string;
   weight: string;
   symptoms: string;
@@ -110,6 +112,7 @@ export default function Prescription() {
     date: new Date().toISOString().split('T')[0],
     age: '',
     blood_pressure: '',
+    pulse: '',
     gender: 'Male',
     weight: '',
     symptoms: '',
@@ -155,6 +158,7 @@ export default function Prescription() {
         gender: 'Male',
         weight: '',
         blood_pressure: '',
+        pulse: '',
       });
       return;
     }
@@ -232,6 +236,7 @@ export default function Prescription() {
             gender: patientData.sex === 'M' ? 'Male' : 'Female',
             weight: visitData.weight || '',
             blood_pressure: visitData.blood_pressure || '',
+            pulse: visitData.pulse || '',
             symptoms: prescData?.symptoms || '',
             findings: prescData?.findings || '',
             diagnosis: prescData?.diagnosis || '',
@@ -610,6 +615,10 @@ export default function Prescription() {
             <span class="info-value">${formData.blood_pressure || 'N/A'}</span>
           </div>
           <div class="info-field">
+            <span class="info-label">Pulse:</span>
+            <span class="info-value">${formData.pulse || 'N/A'}</span>
+          </div>
+          <div class="info-field">
             <span class="info-label">Gender:</span>
             <span class="info-value">${formData.gender || 'N/A'}</span>
           </div>
@@ -755,6 +764,7 @@ export default function Prescription() {
                 <div><strong>Sex:</strong> {patient.sex === 'M' ? 'Male' : 'Female'}</div>
                 <div><strong>Weight:</strong> {visit.weight || 'N/A'}</div>
                 <div><strong>BP:</strong> {visit.blood_pressure || 'N/A'}</div>
+                <div><strong>Pulse:</strong> {visit.pulse || 'N/A'}</div>
               </div>
             </div>
           )}

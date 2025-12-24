@@ -27,6 +27,7 @@ interface Visit {
   Procedure_Fee: number;
   weight: string;
   blood_pressure: string;
+  pulse: string;
 }
 
 export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit }: EditVisitModalProps) {
@@ -42,6 +43,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
     referral: '',
     weight: '',
     blood_pressure: '',
+    pulse: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,6 +62,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
         referral: visit.referral || '',
         weight: visit.weight || '',
         blood_pressure: visit.blood_pressure || '',
+        pulse: visit.pulse || '',
       });
     }
   }, [visit]);
@@ -84,6 +87,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
           referral: formData.referral,
           weight: formData.weight,
           blood_pressure: formData.blood_pressure,
+          pulse: formData.pulse,
         })
         .eq('visit_id', visit.visit_id);
 
@@ -277,6 +281,16 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
                 value={formData.blood_pressure}
                 onChange={(e) => setFormData({ ...formData, blood_pressure: e.target.value })}
                 placeholder="e.g. 120/80"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Pulse</label>
+              <input
+                type="text"
+                value={formData.pulse}
+                onChange={(e) => setFormData({ ...formData, pulse: e.target.value })}
+                placeholder="e.g. 72 bpm"
               />
             </div>
           </div>

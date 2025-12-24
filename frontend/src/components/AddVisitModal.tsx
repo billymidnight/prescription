@@ -33,6 +33,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
     referral: '',
     weight: '',
     blood_pressure: '',
+    pulse: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -156,6 +157,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
             referral: formData.referral || null,
             weight: formData.weight || null,
             blood_pressure: formData.blood_pressure || null,
+            pulse: formData.pulse || null,
           },
         ]);
 
@@ -174,6 +176,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
         referral: '',
         weight: '',
         blood_pressure: '',
+        pulse: '',
       });
       if (!prefilledPatientId) {
         setPatientId('');
@@ -254,6 +257,41 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
               </div>
             </div>
           )}
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Weight</label>
+              <input
+                type="text"
+                name="weight"
+                value={formData.weight}
+                onChange={handleChange}
+                placeholder="e.g. 70 kg"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Blood Pressure</label>
+              <input
+                type="text"
+                name="blood_pressure"
+                value={formData.blood_pressure}
+                onChange={handleChange}
+                placeholder="e.g. 120/80"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Pulse</label>
+              <input
+                type="text"
+                name="pulse"
+                value={formData.pulse}
+                onChange={handleChange}
+                placeholder="e.g. 72 bpm"
+              />
+            </div>
+          </div>
 
           <div className="form-group">
             <label>Consultation Type *</label>
@@ -343,30 +381,6 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
               onChange={handleChange}
               placeholder="Referred by..."
             />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Weight</label>
-              <input
-                type="text"
-                name="weight"
-                value={formData.weight}
-                onChange={handleChange}
-                placeholder="e.g. 70 kg"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Blood Pressure</label>
-              <input
-                type="text"
-                name="blood_pressure"
-                value={formData.blood_pressure}
-                onChange={handleChange}
-                placeholder="e.g. 120/80"
-              />
-            </div>
           </div>
 
           <div className="modal-actions">

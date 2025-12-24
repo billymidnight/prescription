@@ -27,6 +27,7 @@ interface Visit {
   consultation_type: string;
   weight?: string;
   blood_pressure?: string;
+  pulse?: string;
 }
 
 interface PrescriptionMedicine {
@@ -554,6 +555,9 @@ export default function PatientCard() {
                             </div>
                             <div className="vital-item">
                               <strong>BP:</strong> {visit.blood_pressure || 'N/A'}
+                            </div>
+                            <div className="vital-item">
+                              <strong>Pulse:</strong> {visit.pulse || 'N/A'}
                             </div>
                           </div>
 
