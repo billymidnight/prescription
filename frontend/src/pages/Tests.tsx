@@ -23,6 +23,7 @@ interface Visit {
   Procedure_Fee: number;
   weight: string;
   blood_pressure: string;
+  pulse: string;
 }
 
 export default function Tests() {
