@@ -198,6 +198,42 @@ export default function EditPrescriptionModal({
     );
   };
 
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      '⚠️ Are you sure you want to delete this prescription? This action cannot be undone.'
+    );
+    
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      // First delete all medicines associated with this prescription
+      const { error: deleteMedsError } = await supabase
+        .from('prescription_medicines')
+        .delete()
+        .eq('prescription_id', prescriptionId);
+
+      if (deleteMedsError) throw deleteMedsError;
+
+      // Then delete the prescription itself
+      const { error: deletePrescError } = await supabase
+        .from('prescriptions')
+        .delete()
+        .eq('prescription_id', prescriptionId);
+
+      if (deletePrescError) throw deletePrescError;
+
+      alert('Prescription deleted successfully!');
+      onSave(); // Refresh the parent component
+      onClose();
+    } catch (err) {
+      console.error('Error deleting prescription:', err);
+      alert('Failed to delete prescription');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -559,6 +595,18 @@ export default function EditPrescriptionModal({
         </div>
 
         <div className="modal-footer">
+          <button 
+            className="btn-delete" 
+            onClick={handleDelete} 
+            disabled={loading}
+            style={{ 
+              backgroundColor: '#dc3545', 
+              color: 'white',
+              marginRight: 'auto'
+            }}
+          >
+            {loading ? 'Deleting...' : '🗑️ Delete Prescription'}
+          </button>
           <button className="btn-cancel" onClick={onClose} disabled={loading}>
             Cancel
           </button>
