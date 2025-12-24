@@ -173,21 +173,53 @@ export default function Prescription() {
         .single();
 
       console.log('✅ [fetchVisit] Visit data:', visitData);
-      if (visitError) throw visitError;
+      if (visitError) {
+        console.error('❌ [fetchVisit] Visit error:', visitError);
+        throw visitError;
+      }
 
       if (visitData) {
         setVisit(visitData);
         console.log('✅ [fetchVisit] Set visit state');
         
-        // Then fetch the patient using patient_id from visit
-        const { data: patientData, error: patientError } = await supabase
-          .from('patients')
-          .select('*')
-          .eq('patient_id', visitData.patient_id)
-          .single();
+        let patientData = null;
+        
+        // Try to fetch patient by patient_id first
+        if (visitData.patient_id) {
+          console.log('🔍 [fetchVisit] Trying patient_id:', visitData.patient_id);
+          const { data: patientById, error: patientError } = await supabase
+            .from('patients')
+            .select('*')
+            .eq('patient_id', visitData.patient_id)
+            .single();
+          
+          if (!patientError && patientById) {
+            patientData = patientById;
+            console.log('✅ [fetchVisit] Found patient by patient_id');
+          } else {
+            console.warn('⚠️ [fetchVisit] Patient not found by patient_id, trying fullname');
+          }
+        }
+        
+        // Fallback: Try to fetch patient by fullname if patient_id failed or is null
+        if (!patientData && visitData.fullname) {
+          console.log('🔍 [fetchVisit] Trying fullname:', visitData.fullname);
+          const { data: patientByName, error: nameError } = await supabase
+            .from('patients')
+            .select('*')
+            .ilike('name', visitData.fullname.trim())
+            .limit(1)
+            .single();
+          
+          if (!nameError && patientByName) {
+            patientData = patientByName;
+            console.log('✅ [fetchVisit] Found patient by fullname');
+          } else {
+            console.error('❌ [fetchVisit] Patient not found by fullname either:', nameError);
+          }
+        }
 
-        console.log('✅ [fetchVisit] Patient data:', patientData);
-        if (patientError) throw patientError;
+        console.log('✅ [fetchVisit] Final patient data:', patientData);
 
         if (patientData) {
           setPatient(patientData);
@@ -230,7 +262,7 @@ export default function Prescription() {
           setFormData({
             ...formData,
             visit_id: visitId,
-            patient_id: visitData.patient_id.toString(),
+            patient_id: visitData.patient_id?.toString() || patientData.patient_id.toString(),
             patient_name: patientData.name,
             age: age.toString(),
             gender: patientData.sex === 'M' ? 'Male' : 'Female',
@@ -242,10 +274,13 @@ export default function Prescription() {
             diagnosis: prescData?.diagnosis || '',
             medicines: loadedMedicines,
           });
+        } else {
+          console.error('❌ [fetchVisit] No patient data found for visit');
+          setPatient(null);
         }
       }
     } catch (err) {
-      console.error('Error fetching visit/patient:', err);
+      console.error('❌ [fetchVisit] Error fetching visit/patient:', err);
       setVisit(null);
       setPatient(null);
     } finally {
