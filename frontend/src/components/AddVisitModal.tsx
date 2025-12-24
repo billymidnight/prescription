@@ -261,6 +261,11 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
               <option value="Skin">Skin</option>
               <option value="Hair">Hair</option>
               <option value="Nail">Nail</option>
+              <option value="Skin + Hair">Skin + Hair</option>
+              <option value="Skin + Nail">Skin + Nail</option>
+              <option value="Hair + Nail">Hair + Nail</option>
+              <option value="Online">Online</option>
+              <option value="Home Visit">Home Visit</option>
             </select>
           </div>
 
@@ -312,8 +317,9 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
               <option value="Cash">Cash</option>
               <option value="Card">Card</option>
               <option value="GPay">GPay</option>
-              <option value="Card + GPay">Card + GPay</option>
-              <option value="Cash + GPay">Cash + GPay</option>
+              <option value="Cash+Card">Cash+Card</option>
+              <option value="Cash+GPay">Cash+GPay</option>
+              <option value="Card+GPay">Cash+GPay</option>
             </select>
           </div>
 
