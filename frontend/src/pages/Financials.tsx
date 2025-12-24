@@ -95,7 +95,8 @@ export default function Financials() {
         }
         const stats = dateMap.get(date)!;
         stats.totalVisits++;
-        if (visit.new_old === 'New') stats.newPatients++;
+        const newOldValue = (visit.new_old || '').trim().toUpperCase();
+        if (newOldValue === 'NEW' || newOldValue === 'N') stats.newPatients++;
         stats.totalRevenue += (visit.consultation_fee || 0) + (visit.drug_fee || 0) + (visit.Procedure_Fee || 0);
       });
 
@@ -161,7 +162,10 @@ export default function Financials() {
       if (visitsError) throw visitsError;
 
       // Count new patients from today's visits
-      const newPatientsCount = (visitsData || []).filter(visit => visit.new_old === 'New').length;
+      const newPatientsCount = (visitsData || []).filter(visit => {
+        const newOldValue = (visit.new_old || '').trim().toUpperCase();
+        return newOldValue === 'NEW' || newOldValue === 'N';
+      }).length;
 
       // Fetch today's medicines
       const { data: medicinesData, error: medicinesError } = await supabase
