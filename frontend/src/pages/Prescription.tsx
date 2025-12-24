@@ -625,7 +625,7 @@ export default function Prescription() {
       <body>
         <div class="header">
           <h1>Dr. Karthika Skin Clinic</h1>
-          <p>Dermatology & Skin Care Clinic</p>
+          <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
         </div>
 
         <div class="patient-info">
@@ -728,7 +728,7 @@ export default function Prescription() {
                 #1113 to 1116, MTP Road, Opp. Central Theatre, Coimbatore – 641002
               </p>
               <p class="phone">
-                📞 +91 95855 33120 &nbsp;&nbsp;|&nbsp;&nbsp; +91 90878 98922
+                📞 +91 95855 33120 &nbsp;&nbsp;|&nbsp;&nbsp; +91 90878 78922
               </p>
             </div>
           </div>
