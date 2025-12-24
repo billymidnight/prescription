@@ -282,7 +282,7 @@ export default function Tests() {
                   <th>Consultation Type</th>
                   <th>Consultation Fee</th>
                   <th>Drug Fee</th>
-                  <th>Referral</th>
+                  <th>Procedure Fee</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -307,7 +307,7 @@ export default function Tests() {
                     </td>
                     <td className="fee">{formatCurrency(visit.consultation_fee)}</td>
                     <td className="fee">{formatCurrency(visit.drug_fee)}</td>
-                    <td className="referral">{visit.referral || '-'}</td>
+                    <td className="fee">{formatCurrency(visit.Procedure_Fee || 0)}</td>
                     <td className="actions">
                       <button 
                         className="btn-edit-icon" 
@@ -354,6 +354,7 @@ export default function Tests() {
                             <div className="detail-grid">
                               <span><strong>Weight:</strong> {visit.weight || 'Not recorded'}</span>
                               <span><strong>Blood Pressure:</strong> {visit.blood_pressure || 'Not recorded'}</span>
+                              <span><strong>Pulse:</strong> {visit.pulse || 'Not recorded'}</span>
                             </div>
                           </div>
                           {visit.extra_procedures && (
