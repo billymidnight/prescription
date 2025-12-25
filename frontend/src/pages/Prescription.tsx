@@ -8,7 +8,7 @@ interface Medicine {
   id: string;
   name: string;
   medicine_form: string;
-  quantity: string;
+  time: string;
   frequency: string;
   duration: string;
 }
@@ -44,6 +44,7 @@ interface PrescriptionData {
   symptoms: string;
   findings: string;
   diagnosis: string;
+  procedures: string;
   medicines: Medicine[];
 }
 
@@ -88,18 +89,12 @@ const MEDICINE_FORM_OPTIONS = [
   'CUSTOM',
 ];
 
-const QUANTITY_OPTIONS = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '10mg',
-  '20mg',
-  '50mg',
-  '100mg',
-  '250mg',
-  '500mg',
+const TIME_OPTIONS = [
+  'BFAF',
+  'After Meal (Morning)',
+  'After Meal (Evening)',
+  'Before Food',
+  'After Food',
   'CUSTOM',
 ];
 
@@ -118,6 +113,7 @@ export default function Prescription() {
     symptoms: '',
     findings: '',
     diagnosis: '',
+    procedures: '',
     medicines: [],
   });
 
@@ -125,7 +121,7 @@ export default function Prescription() {
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
   const [customFormMode, setCustomFormMode] = useState<Record<string, boolean>>({});
-  const [customQuantityMode, setCustomQuantityMode] = useState<Record<string, boolean>>({});
+  const [customTimeMode, setCustomTimeMode] = useState<Record<string, boolean>>({});
   const [customFrequencyMode, setCustomFrequencyMode] = useState<Record<string, boolean>>({});
   const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -250,7 +246,7 @@ export default function Prescription() {
                 id: med.medicine_id.toString(),
                 name: med.medicine_name,
                 medicine_form: med.medicine_form || 'N/A',
-                quantity: med.quantity || '1',
+                time: med.time || 'BFAF',
                 frequency: med.frequency,
                 duration: med.duration,
               }));
@@ -272,6 +268,7 @@ export default function Prescription() {
             symptoms: prescData?.symptoms || '',
             findings: prescData?.findings || '',
             diagnosis: prescData?.diagnosis || '',
+            procedures: prescData?.procedures || '',
             medicines: loadedMedicines,
           });
         } else {
@@ -305,7 +302,7 @@ export default function Prescription() {
           id: newId,
           name: '',
           medicine_form: 'Tablet',
-          quantity: '1',
+          time: 'BFAF',
           frequency: 'Once daily',
           duration: '1 month',
         },
@@ -347,6 +344,7 @@ export default function Prescription() {
             symptoms: formData.symptoms || null,
             findings: formData.findings || null,
             diagnosis: formData.diagnosis || null,
+            procedures: formData.procedures || null,
           })
           .eq('prescription_id', existingPrescriptionId);
 
@@ -368,6 +366,7 @@ export default function Prescription() {
             symptoms: formData.symptoms || null,
             findings: formData.findings || null,
             diagnosis: formData.diagnosis || null,
+            procedures: formData.procedures || null,
           })
           .select()
           .single();
@@ -383,7 +382,7 @@ export default function Prescription() {
           prescription_id: prescriptionId,
           medicine_name: med.name,
           medicine_form: med.medicine_form,
-          quantity: med.quantity,
+          time: med.time,
           frequency: med.frequency,
           duration: med.duration,
         }));
@@ -678,6 +677,11 @@ export default function Prescription() {
           <div class="section-content">${formData.diagnosis || 'No diagnosis recorded'}</div>
         </div>
 
+        <div class="section">
+          <div class="section-title">Procedures</div>
+          <div class="section-content">${formData.procedures || 'No procedures recorded'}</div>
+        </div>
+
         ${formData.medicines.length > 0 ? `
         <div class="section">
           <div class="section-title">Medicines Prescribed</div>
@@ -687,7 +691,7 @@ export default function Prescription() {
                 <th style="width: 8%;">Sr.</th>
                 <th style="width: 30%;">Medicine</th>
                 <th style="width: 12%;">Form</th>
-                <th style="width: 10%;">Qty</th>
+                <th style="width: 10%;">Time</th>
                 <th style="width: 22%;">Frequency</th>
                 <th style="width: 18%;">Duration</th>
               </tr>
@@ -698,7 +702,7 @@ export default function Prescription() {
                   <td>${index + 1}</td>
                   <td>${med.name}</td>
                   <td>${med.medicine_form}</td>
-                  <td>${med.quantity}</td>
+                  <td>${med.time}</td>
                   <td>${med.frequency}</td>
                   <td>${med.duration}</td>
                 </tr>
@@ -837,6 +841,17 @@ export default function Prescription() {
               value={formData.diagnosis}
               onChange={handleChange}
               placeholder="Enter diagnosis..."
+              rows={4}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Procedures</label>
+            <textarea
+              name="procedures"
+              value={formData.procedures}
+              onChange={handleChange}
+              placeholder="Enter procedures performed..."
               rows={4}
             />
           </div>
@@ -985,20 +1000,20 @@ export default function Prescription() {
                     </div>
 
                     <div className="form-group">
-                      <label>Quantity</label>
-                      {customQuantityMode[medicine.id] ? (
+                      <label>Time</label>
+                      {customTimeMode[medicine.id] ? (
                         <div>
                           <input
                             type="text"
-                            placeholder="Enter custom quantity"
-                            value={medicine.quantity}
-                            onChange={(e) => updateMedicine(medicine.id, 'quantity', e.target.value)}
+                            placeholder="Enter custom time"
+                            value={medicine.time}
+                            onChange={(e) => updateMedicine(medicine.id, 'time', e.target.value)}
                           />
                           <button
                             type="button"
                             onClick={() => {
-                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'quantity', '1');
+                              setCustomTimeMode({ ...customTimeMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'time', 'BFAF');
                             }}
                             style={{ marginTop: '5px', fontSize: '12px' }}
                           >
@@ -1007,19 +1022,19 @@ export default function Prescription() {
                         </div>
                       ) : (
                         <select
-                          value={medicine.quantity}
+                          value={medicine.time}
                           onChange={(e) => {
                             if (e.target.value === 'CUSTOM') {
-                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: true });
-                              updateMedicine(medicine.id, 'quantity', '');
+                              setCustomTimeMode({ ...customTimeMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'time', '');
                             } else {
-                              updateMedicine(medicine.id, 'quantity', e.target.value);
+                              updateMedicine(medicine.id, 'time', e.target.value);
                             }
                           }}
                         >
-                          {QUANTITY_OPTIONS.map((qty) => (
-                            <option key={qty} value={qty}>
-                              {qty}
+                          {TIME_OPTIONS.map((timeOpt) => (
+                            <option key={timeOpt} value={timeOpt}>
+                              {timeOpt}
                             </option>
                           ))}
                         </select>
