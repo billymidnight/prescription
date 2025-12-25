@@ -43,6 +43,7 @@ interface Prescription {
   symptoms: string;
   findings: string;
   diagnosis: string;
+  procedures: string;
   created_at: string;
   medicines: PrescriptionMedicine[];
 }
