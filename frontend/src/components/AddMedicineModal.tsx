@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './AddMedicineModal.css';
 
 interface AddMedicineModalProps {
@@ -120,6 +121,9 @@ export default function AddMedicineModal({ isOpen, onClose, onMedicineAdded, pre
         ]);
 
       if (insertError) throw insertError;
+
+      // Log activity
+      await logActivity(`Added Medicine Record (Medicine ID: ${nextMedId}, Patient: ${patient!.name})`);
 
       // Reset form
       setFormData({

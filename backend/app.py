@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -24,6 +24,12 @@ def create_app():
                 "X-User-Role"
             ],
             "supports_credentials": True
+        },
+        r"/static_images/*": {
+            "origins": allowed_origins,
+            "methods": ["GET", "OPTIONS"],
+            "allow_headers": ["Content-Type"],
+            "supports_credentials": True
         }
     })
 
@@ -32,6 +38,12 @@ def create_app():
     from api.patient_routes import patient_bp
     app.register_blueprint(api_bp)
     app.register_blueprint(patient_bp, url_prefix='/api/patients')
+
+    # Static images endpoint
+    @app.route('/static_images/<path:filename>')
+    def serve_static_image(filename):
+        static_images_path = os.path.join(os.path.dirname(__file__), 'static_images')
+        return send_from_directory(static_images_path, filename)
 
     # Health check endpoint
     @app.route('/health', methods=['GET'])

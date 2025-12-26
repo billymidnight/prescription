@@ -362,4 +362,85 @@ def monthly_stats():
         return jsonify({"error": str(e)}), 500
 
 
-# ============= ADD MORE ROUTES HERE =============
+# ============= ACTIVITY LOGS ROUTES =============
+
+@api_bp.route('/activity-logs', methods=['GET', 'OPTIONS'])
+def get_activity_logs():
+    """Get paginated activity logs with user details and filters."""
+    if request.method == 'OPTIONS':
+        return ('', 200)
+    
+    try:
+        user_id = _get_user_from_header(request)
+        if not user_id:
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        client = get_admin_client()
+        if not client:
+            return jsonify({"error": "Database unavailable"}), 503
+        
+        # Get pagination params
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+        from_idx = (page - 1) * per_page
+        to_idx = from_idx + per_page - 1
+        
+        # Get filter params
+        date_from = request.args.get('date_from')
+        date_to = request.args.get('date_to')
+        user_uuid = request.args.get('user_uuid')
+        
+        # Build query
+        query = client.table('activity_logs').select('*', count='exact')
+        
+        # Apply filters
+        if date_from:
+            query = query.gte('created_at', f"{date_from}T00:00:00")
+        if date_to:
+            query = query.lte('created_at', f"{date_to}T23:59:59")
+        if user_uuid:
+            query = query.eq('user_uuid', user_uuid)
+        
+        # Fetch logs with count
+        logs_response = query.order('created_at', desc=True).range(from_idx, to_idx).execute()
+        logs_data = logs_response.data if hasattr(logs_response, 'data') else []
+        total_count = logs_response.count if hasattr(logs_response, 'count') else 0
+        
+        # Get unique user UUIDs
+        user_uuids = list(set([log.get('user_uuid') for log in logs_data if log.get('user_uuid')]))
+        
+        # Fetch user details
+        users_map = {}
+        if user_uuids:
+            users_response = client.table('users').select('uuid, screenname, email').in_('uuid', user_uuids).execute()
+            users_data = users_response.data if hasattr(users_response, 'data') else []
+            for user in users_data:
+                users_map[user['uuid']] = {
+                    'screenname': user.get('screenname'),
+                    'email': user.get('email')
+                }
+        
+        # Enrich logs with user info
+        enriched_logs = []
+        for log in logs_data:
+            user_uuid = log.get('user_uuid')
+            user_info = users_map.get(user_uuid, {})
+            enriched_logs.append({
+                'log_id': log.get('log_id'),
+                'action': log.get('action'),
+                'created_at': log.get('created_at'),
+                'user_name': user_info.get('screenname') or user_info.get('email') or 'Unknown User'
+            })
+        
+        return jsonify({
+            'logs': enriched_logs,
+            'total': total_count,
+            'page': page,
+            'per_page': per_page
+        }), 200
+        
+    except Exception as e:
+        logging.exception('activity_logs error')
+        return jsonify({"error": str(e)}), 500
+
+

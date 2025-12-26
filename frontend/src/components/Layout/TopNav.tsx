@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../lib/state/authStore';
+import { logActivity } from '../../lib/activityLog';
 import './TopNav.css';
 
 export default function TopNav() {
@@ -9,6 +10,8 @@ export default function TopNav() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+    // Log activity before logout
+    await logActivity(`User Logged Out`);
     await logout();
     navigate('/');
   };

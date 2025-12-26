@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './EditPatientModal.css';
 
 interface Patient {
@@ -132,6 +133,9 @@ export default function EditPatientModal({ isOpen, onClose, onPatientUpdated, pa
         .eq('patient_id', patient.patient_id);
 
       if (updateError) throw updateError;
+
+      // Log activity
+      await logActivity(`Edited Patient (Patient ID: ${patient.patient_id}, Patient Name: ${formData.name.trim()})`);
 
       setImageFile(null);
       onPatientUpdated();

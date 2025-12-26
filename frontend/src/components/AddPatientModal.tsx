@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './AddPatientModal.css';
 
 interface AddPatientModalProps {
@@ -134,6 +135,9 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
         ]);
 
       if (insertError) throw insertError;
+
+      // Log activity
+      await logActivity(`Created New Patient (Patient ID: ${nextPatientId}, Name: ${formData.name.trim()})`);
 
       // Reset form and close modal
       setFormData({

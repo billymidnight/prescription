@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './EditMedicineModal.css';
 
 interface Medicine {
@@ -81,6 +82,9 @@ export default function EditMedicineModal({ isOpen, onClose, onMedicineUpdated, 
         .eq('med_id', medicine.med_id);
 
       if (updateError) throw updateError;
+
+      // Log activity
+      await logActivity(`Edited Medicine Record (Medicine ID: ${medicine.med_id})`);
 
       onMedicineUpdated();
       onClose();

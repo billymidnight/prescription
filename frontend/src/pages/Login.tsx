@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../lib/state/authStore';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './Login.css';
 
 export default function Login() {
@@ -82,6 +83,9 @@ export default function Login() {
       if (respJson?.was_inaugural_login) {
         setSuccess('Welcome! Your account has been created.');
       }
+
+      // Log activity
+      await logActivity(`User Logged In`);
 
       navigate('/home');
     } catch (err: any) {

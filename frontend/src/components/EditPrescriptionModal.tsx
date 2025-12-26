@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import supabase from '../lib/supabaseClient';
 import { CLINIC_MEDICINES } from '../data/medicines';
+import { logActivity } from '../lib/activityLog';
 import './EditPrescriptionModal.css';
 
 interface Medicine {
@@ -60,7 +61,6 @@ const MEDICINE_FORM_OPTIONS = [
 ];
 
 const TIME_OPTIONS = [
-  'BFAF',
   'After Meal (Morning)',
   'After Meal (Evening)',
   'Before Food',
@@ -121,7 +121,7 @@ export default function EditPrescriptionModal({
         id: med.medicine_id.toString(),
         name: med.medicine_name,
         medicine_form: med.medicine_form || 'Tablet',
-        time: med.time || 'BFAF',
+        time: med.time || 'After Meal (Morning)',
         frequency: med.frequency,
         duration: med.duration,
       })) || [];
@@ -154,7 +154,7 @@ export default function EditPrescriptionModal({
       ...formData,
       medicines: [
         ...formData.medicines,
-        { id: newId, name: '', medicine_form: 'Tablet', time: 'BFAF', frequency: 'Once daily', duration: '1 month' },
+        { id: newId, name: '', medicine_form: 'Tablet', time: 'After Meal (Morning)', frequency: 'Once daily', duration: '1 month' },
       ],
     });
   };
@@ -219,6 +219,9 @@ export default function EditPrescriptionModal({
 
       if (deletePrescError) throw deletePrescError;
 
+      // Log activity
+      await logActivity(`Deleted Prescription (Prescription ID: ${prescriptionId})`);
+
       alert('Prescription deleted successfully!');
       onSave(); // Refresh the parent component
       onClose();
@@ -271,6 +274,9 @@ export default function EditPrescriptionModal({
 
         if (insertError) throw insertError;
       }
+
+      // Log activity
+      await logActivity(`Edited Prescription (Prescription ID: ${prescriptionId}, ${formData.medicines.length} medicines prescribed)`);
 
       alert('Prescription updated successfully!');
       onSave();
@@ -475,7 +481,7 @@ export default function EditPrescriptionModal({
                             type="button"
                             onClick={() => {
                               setCustomTimeMode({ ...customTimeMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'time', 'BFAF');
+                              updateMedicine(medicine.id, 'time', 'After Meal (Morning)');
                             }}
                             style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
                           >

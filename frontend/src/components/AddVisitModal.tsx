@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './AddVisitModal.css';
 
 interface AddVisitModalProps {
@@ -162,6 +163,9 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
         ]);
 
       if (insertError) throw insertError;
+
+      // Log activity
+      await logActivity(`Added Visit (Visit ID: ${nextVisitId}) For Patient (Patient ID: ${patient!.patient_id}, Patient Name: ${patient!.name})`);
 
       // Reset form
       setFormData({

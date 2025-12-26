@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CLINIC_MEDICINES } from '../data/medicines';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './Prescription.css';
 
 interface Medicine {
@@ -90,7 +91,6 @@ const MEDICINE_FORM_OPTIONS = [
 ];
 
 const TIME_OPTIONS = [
-  'BFAF',
   'After Meal (Morning)',
   'After Meal (Evening)',
   'Before Food',
@@ -246,7 +246,7 @@ export default function Prescription() {
                 id: med.medicine_id.toString(),
                 name: med.medicine_name,
                 medicine_form: med.medicine_form || 'N/A',
-                time: med.time || 'BFAF',
+                time: med.time || 'After Meal (Morning)',
                 frequency: med.frequency,
                 duration: med.duration,
               }));
@@ -302,7 +302,7 @@ export default function Prescription() {
           id: newId,
           name: '',
           medicine_form: 'Tablet',
-          time: 'BFAF',
+          time: 'After Meal (Morning)',
           frequency: 'Once daily',
           duration: '1 month',
         },
@@ -405,11 +405,29 @@ export default function Prescription() {
   const savePrescriptionAndPrint = async () => {
     const saved = await savePrescriptionToDB();
     if (saved) {
+      // Log activity
+      await logActivity(`Saved and Printed Prescription For Visit (Visit ID: ${formData.visit_id}, Patient Name: ${formData.patient_name}, ${formData.medicines.length} medicines prescribed)`);
+      
       generatePDF();
     }
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
+    // Fetch and convert logo to base64
+    let logoBase64 = '';
+    try {
+      const logoUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/static_images/logo.jpeg`;
+      const response = await fetch(logoUrl);
+      const blob = await response.blob();
+      logoBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.error('Failed to load logo:', err);
+    }
+
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -437,6 +455,15 @@ export default function Prescription() {
             margin-bottom: 10px;
             padding-bottom: 8px;
             border-bottom: 2px solid #E8D5C4;
+            position: relative;
+          }
+          .header-logo {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
           }
           .header h1 {
             color: #D4B5A0;
@@ -623,6 +650,7 @@ export default function Prescription() {
       </head>
       <body>
         <div class="header">
+          ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
           <h1>Dr. Karthika Skin Clinic</h1>
           <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
         </div>
@@ -1013,7 +1041,7 @@ export default function Prescription() {
                             type="button"
                             onClick={() => {
                               setCustomTimeMode({ ...customTimeMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'time', 'BFAF');
+                              updateMedicine(medicine.id, 'time', 'After Meal (Morning)');
                             }}
                             style={{ marginTop: '5px', fontSize: '12px' }}
                           >

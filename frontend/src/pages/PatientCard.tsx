@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import EditPatientModal from '../components/EditPatientModal';
 import AddVisitModal from '../components/AddVisitModal';
 import AddMedicineModal from '../components/AddMedicineModal';
@@ -248,6 +249,9 @@ export default function PatientCard() {
         .eq('patient_id', patientId);
 
       if (deleteError) throw deleteError;
+
+      // Log activity
+      await logActivity(`Deleted Patient (Patient ID: ${patientId}, Patient Name: ${patient?.name || 'Unknown'})`);
 
       navigate('/patients-db');
     } catch (err: any) {

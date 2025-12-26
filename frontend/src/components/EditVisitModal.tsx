@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../lib/supabaseClient';
+import { logActivity } from '../lib/activityLog';
 import './EditVisitModal.css';
 
 interface EditVisitModalProps {
@@ -93,6 +94,9 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
 
       if (updateError) throw updateError;
 
+      // Log activity
+      await logActivity(`Edited Visit (Visit ID: ${visit.visit_id})`);
+
       onVisitUpdated();
       onClose();
     } catch (err: any) {
@@ -141,6 +145,9 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
                       .eq('visit_id', visit.visit_id);
                     
                     if (deleteError) throw deleteError;
+                    
+                    // Log activity
+                    await logActivity(`Deleted Visit (Visit ID: ${visit.visit_id})`);
                     
                     onVisitUpdated();
                     onClose();
