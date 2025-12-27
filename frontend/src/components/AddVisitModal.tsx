@@ -36,6 +36,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
     blood_pressure: '',
     pulse: '',
   });
+  const [customProcedure, setCustomProcedure] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -367,13 +368,59 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
 
           <div className="form-group">
             <label>Extra Procedures</label>
-            <textarea
-              name="extra_procedures"
-              value={formData.extra_procedures}
-              onChange={handleChange}
-              placeholder="Describe any additional procedures..."
-              rows={3}
-            />
+            {!customProcedure ? (
+              <>
+                <select
+                  value={formData.extra_procedures}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'Other') {
+                      setCustomProcedure(true);
+                      setFormData({ ...formData, extra_procedures: '' });
+                    } else {
+                      setFormData({ ...formData, extra_procedures: val });
+                    }
+                  }}
+                >
+                  <option value="">Select a Procedure</option>
+                  <option value="Inj MMR">Inj MMR</option>
+                  <option value="Peel">Peel</option>
+                  <option value="Biopsy">Biopsy</option>
+                  <option value="PRP (Face)">PRP (Face)</option>
+                  <option value="PRP (Hair)">PRP (Hair)</option>
+                  <option value="Excision">Excision</option>
+                  <option value="Electrocautery">Electrocautery</option>
+                  <option value="Inj Tricort">Inj Tricort</option>
+                  <option value="Corn Procedure">Corn Procedure</option>
+                  <option value="Ear Procedure">Ear Procedure</option>
+                  <option value="Microneedling">Microneedling</option>
+                  <option value="Laser">Laser</option>
+                  <option value="Nail Procedure">Nail Procedure</option>
+                  <option value="Peel + Microneedling">Peel + Microneedling</option>
+                  <option value="Other">Other (Specify)</option>
+                  <option value="None">None</option>
+                </select>
+              </>
+            ) : (
+              <>
+                <textarea
+                  value={formData.extra_procedures}
+                  onChange={(e) => setFormData({ ...formData, extra_procedures: e.target.value })}
+                  placeholder="Describe any additional procedures..."
+                  rows={3}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomProcedure(false);
+                    setFormData({ ...formData, extra_procedures: '' });
+                  }}
+                  style={{ marginTop: '5px', fontSize: '12px', padding: '4px 8px' }}
+                >
+                  ← Back to dropdown
+                </button>
+              </>
+            )}
           </div>
 
           <div className="form-group">

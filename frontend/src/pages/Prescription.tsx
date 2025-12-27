@@ -467,12 +467,12 @@ export default function Prescription() {
           }
           .header h1 {
             color: #D4B5A0;
-            font-size: 20px;
+            font-size: 28px;
             margin-bottom: 3px;
           }
           .header p {
             color: #666;
-            font-size: 10px;
+            font-size: 14px;
           }
           .patient-info {
             display: grid;
@@ -491,17 +491,17 @@ export default function Prescription() {
             font-weight: bold;
             color: #555;
             min-width: 100px;
-            font-size: 10px;
+            font-size: 13px;
           }
           .info-value {
             color: #333;
-            font-size: 10px;
+            font-size: 13px;
           }
           .section {
             margin-bottom: 10px;
           }
           .section-title {
-            font-size: 11px;
+            font-size: 15px;
             font-weight: bold;
             color: #D4B5A0;
             margin-bottom: 4px;
@@ -512,9 +512,9 @@ export default function Prescription() {
             padding: 6px;
             background: #FDFBF7;
             border-radius: 4px;
-            line-height: 1.4;
+            line-height: 1.5;
             white-space: pre-wrap;
-            font-size: 9px;
+            font-size: 14px;
           }
           .medicines-table {
             width: 100%;
@@ -530,12 +530,12 @@ export default function Prescription() {
             padding: 5px;
             text-align: left;
             border-bottom: 1px solid #D4B5A0;
-            font-size: 9px;
+            font-size: 13px;
           }
           .medicines-table td {
             padding: 5px;
             border-bottom: 1px solid #E8D5C4;
-            font-size: 9px;
+            font-size: 13px;
             color: #333;
           }
           .medicines-table tbody tr:last-child td {
@@ -561,7 +561,7 @@ export default function Prescription() {
             margin-bottom: 3px;
           }
           .signature-label {
-            font-size: 9px;
+            font-size: 12px;
             color: #666;
             font-weight: 600;
           }
@@ -581,26 +581,26 @@ export default function Prescription() {
             margin-bottom: 6px;
           }
           .doctor-info h3 {
-            font-size: 12px;
+            font-size: 15px;
             color: #D4B5A0;
             margin-bottom: 2px;
             font-weight: 700;
             letter-spacing: 0.3px;
           }
           .designation {
-            font-size: 9px;
+            font-size: 12px;
             color: #555;
             font-weight: 600;
             margin-bottom: 1px;
           }
           .reg-no {
-            font-size: 8px;
+            font-size: 11px;
             color: #888;
             font-style: italic;
             margin-bottom: 4px;
           }
           .specialities {
-            font-size: 8px;
+            font-size: 11px;
             color: #444;
             padding: 4px 8px;
             background: #F5EBE0;
@@ -619,13 +619,13 @@ export default function Prescription() {
             border-top: 1px solid #E8D5C4;
           }
           .address {
-            font-size: 8px;
+            font-size: 11px;
             color: #555;
             margin-bottom: 3px;
             line-height: 1.3;
           }
           .phone {
-            font-size: 8px;
+            font-size: 11px;
             color: #444;
             font-weight: 600;
             letter-spacing: 0.2px;

@@ -9,7 +9,7 @@ def create_app():
     app = Flask(__name__)
     
     # Get allowed origins from environment or use defaults
-    allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:5173').split(',')
+    allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:5173').split(',')
     
     # Configure CORS
     CORS(app, resources={
