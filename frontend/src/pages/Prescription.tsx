@@ -416,14 +416,19 @@ export default function Prescription() {
     // Fetch and convert logo to base64
     let logoBase64 = '';
     try {
-      const logoUrl = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/static_images/logo.jpeg`;
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const logoUrl = `${apiBase.replace('/api', '')}/static_images/logo.jpeg`;
       const response = await fetch(logoUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch logo: ${response.status}`);
+      }
       const blob = await response.blob();
       logoBase64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(blob);
       });
+      console.log('Logo loaded successfully');
     } catch (err) {
       console.error('Failed to load logo:', err);
     }
