@@ -169,11 +169,11 @@ export default function PatientCard() {
       if (patientError) throw patientError;
       setPatient(patientData);
 
-      // Fetch all visits for this patient (matching by name)
+      // Fetch all visits for this patient (using patient_id)
       const { data: visitsData, error: visitsError } = await supabase
         .from('visits')
         .select('*')
-        .ilike('fullname', patientData.name)
+        .eq('patient_id', patientId)
         .order('date', { ascending: false });
 
       if (visitsError) throw visitsError;

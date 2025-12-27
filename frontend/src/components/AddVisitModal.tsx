@@ -143,6 +143,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
         .insert([
           {
             visit_id: nextVisitId,
+            patient_id: patient!.patient_id,
             date: formData.date,
             fullname: patient!.name,
             hometown: patient!.hometown || '',

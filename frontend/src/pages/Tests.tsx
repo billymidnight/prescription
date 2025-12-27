@@ -127,23 +127,15 @@ export default function Tests() {
     setExpandedVisitId(expandedVisitId === visitId ? null : visitId);
   };
 
-  const handlePatientNameClick = async (e: React.MouseEvent, phoneNo: string) => {
+  const handlePatientNameClick = (e: React.MouseEvent, visit: Visit) => {
     e.stopPropagation();
-    try {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('patient_id')
-        .eq('phone_no', phoneNo)
-        .single();
-      
-      if (error) throw error;
-      if (data) {
-        navigate(`/patient/${data.patient_id}`);
-      }
-    } catch (err) {
-      console.error('Error finding patient:', err);
-      alert('Could not find patient record');
+    
+    if (!visit.patient_id) {
+      alert('Patient ID not found for this visit. Cannot navigate to patient details.');
+      return;
     }
+    
+    navigate(`/patient/${visit.patient_id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -296,7 +288,7 @@ export default function Tests() {
                     <td className="patient-name">
                       <span 
                         className="patient-name-link" 
-                        onClick={(e) => handlePatientNameClick(e, visit.phoneno)}
+                        onClick={(e) => handlePatientNameClick(e, visit)}
                       >
                         {visit.fullname}
                       </span>
