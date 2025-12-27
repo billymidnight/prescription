@@ -7,6 +7,7 @@ import './Tests.css';
 
 interface Visit {
   visit_id: number;
+  patient_id: number | null;
   date: string;
   fullname: string;
   hometown: string;
