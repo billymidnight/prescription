@@ -14,7 +14,18 @@ if (!SUPABASE_URL || !SUPABASE_ANON) {
     }
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+    },
+    global: {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+    },
+})
 
 // Helper function to get patient image URL from Supabase Storage
 export const getPatientImageUrl = (filename: string | null): string | null => {
