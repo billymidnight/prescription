@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import './styles/index.css';
 import { useAuthStore } from './lib/state/authStore';
 import { ProtectedRoute, ApprovedRoute, PublicRoute, RootRedirect } from './router';
 import Login from './pages/Login';
