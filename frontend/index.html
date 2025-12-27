@@ -33,6 +33,37 @@
         background: var(--bg-main);
         color: var(--text-primary);
         line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      button {
+        cursor: pointer;
+        font-family: inherit;
+        border: none;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      input, textarea, select {
+        font-family: inherit;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-main);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
       }
     </style>
   </head>
