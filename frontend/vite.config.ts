@@ -8,6 +8,8 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: false,
-    assetsInlineLimit: 0
+    assetsInlineLimit: 0,
+    minify: false,
+    cssMinify: false
   }
 });
