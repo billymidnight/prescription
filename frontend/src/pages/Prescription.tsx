@@ -8,7 +8,7 @@ import './Prescription.css';
 interface Medicine {
   id: string;
   name: string;
-  medicine_form: string;
+  quantity: string;
   time: string;
   frequency: string;
   duration: string;
@@ -78,14 +78,9 @@ const DURATION_OPTIONS = [
   'CUSTOM',
 ];
 
-const MEDICINE_FORM_OPTIONS = [
-  'Tablet',
-  'Capsule',
-  'Syrup',
-  'Cream',
-  'Ointment',
-  'Drops',
-  'Injection',
+const QUANTITY_OPTIONS = [
+  '1',
+  '2',
   'N/A',
   'CUSTOM',
 ];
@@ -120,7 +115,7 @@ export default function Prescription() {
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
-  const [customFormMode, setCustomFormMode] = useState<Record<string, boolean>>({});
+  const [customQuantityMode, setCustomQuantityMode] = useState<Record<string, boolean>>({});
   const [customTimeMode, setCustomTimeMode] = useState<Record<string, boolean>>({});
   const [customFrequencyMode, setCustomFrequencyMode] = useState<Record<string, boolean>>({});
   const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
@@ -245,7 +240,7 @@ export default function Prescription() {
               loadedMedicines = medsData.map(med => ({
                 id: med.medicine_id.toString(),
                 name: med.medicine_name,
-                medicine_form: med.medicine_form || 'N/A',
+                quantity: med.quantity || '1',
                 time: med.time || 'After Meal (Morning)',
                 frequency: med.frequency,
                 duration: med.duration,
@@ -301,7 +296,7 @@ export default function Prescription() {
         {
           id: newId,
           name: '',
-          medicine_form: 'Tablet',
+          quantity: '1',
           time: 'After Meal (Morning)',
           frequency: 'Once daily',
           duration: '1 month',
@@ -381,7 +376,7 @@ export default function Prescription() {
         const medicinesData = formData.medicines.map(med => ({
           prescription_id: prescriptionId,
           medicine_name: med.name,
-          medicine_form: med.medicine_form,
+          quantity: med.quantity,
           time: med.time,
           frequency: med.frequency,
           duration: med.duration,
@@ -449,306 +444,419 @@ export default function Prescription() {
         <title>${filename}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: Arial, sans-serif;
-            padding: 15px;
-            background: white;
-            color: #333;
+          
+          @page {
+            size: A4;
+            margin: 10mm;
           }
-          .header {
-            text-align: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #E8D5C4;
+          
+          html, body {
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            padding: 0;
+          }
+          
+          body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: white;
+            color: #222;
+            display: flex;
+            flex-direction: column;
+            height: 297mm;
+            padding: 0;
             position: relative;
           }
+          
+          .content-wrapper {
+            flex: 1;
+            padding: 8px 15px 0 15px;
+            padding-bottom: 155px;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 3px solid #D4B5A0;
+            position: relative;
+          }
+          
           .header-logo {
             position: absolute;
             left: 0;
             top: 0;
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             object-fit: contain;
           }
+          
           .header h1 {
-            color: #D4B5A0;
-            font-size: 28px;
-            margin-bottom: 3px;
+            color: #C9A88D;
+            font-size: 38px;
+            margin-bottom: 2px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
           }
+          
           .header p {
-            color: #666;
-            font-size: 14px;
+            color: #555;
+            font-size: 20px;
+            font-weight: 500;
           }
+          
           .patient-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px 15px;
-            margin-bottom: 10px;
-            padding: 10px;
+            gap: 4px 18px;
+            margin-bottom: 6px;
+            padding: 6px 10px;
             background: #FDFBF7;
             border-radius: 4px;
+            border: 1.5px solid #E8D5C4;
           }
+          
           .info-field {
             display: flex;
             gap: 8px;
+            align-items: baseline;
           }
+          
           .info-label {
-            font-weight: bold;
-            color: #555;
-            min-width: 100px;
-            font-size: 13px;
+            font-weight: 700;
+            color: #444;
+            min-width: 115px;
+            font-size: 18px;
           }
+          
           .info-value {
-            color: #333;
-            font-size: 13px;
+            color: #222;
+            font-size: 18px;
+            font-weight: 500;
           }
+          
           .section {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
           }
+          
           .section-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #D4B5A0;
-            margin-bottom: 4px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #C9A88D;
+            margin-bottom: 2px;
             padding-bottom: 2px;
-            border-bottom: 1px solid #E8D5C4;
+            border-bottom: 2px solid #E8D5C4;
+            letter-spacing: 0.3px;
           }
+          
           .section-content {
-            padding: 6px;
+            padding: 5px 8px;
             background: #FDFBF7;
-            border-radius: 4px;
-            line-height: 1.5;
+            border-radius: 3px;
+            line-height: 1.3;
             white-space: pre-wrap;
             font-size: 14px;
+            border: 1px solid #E8D5C4;
           }
+          
           .medicines-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
             border-radius: 4px;
             overflow: hidden;
+            border: 1.5px solid #D4B5A0;
           }
+          
           .medicines-table th {
-            background: #E8D5C4;
-            color: #444;
+            background: #D4B5A0;
+            color: #fff;
             font-weight: 700;
-            padding: 5px;
+            padding: 4px 3px;
             text-align: left;
-            border-bottom: 1px solid #D4B5A0;
-            font-size: 13px;
+            border-bottom: 1.5px solid #C9A88D;
+            font-size: 16px;
           }
+          
           .medicines-table td {
-            padding: 5px;
+            padding: 3px;
             border-bottom: 1px solid #E8D5C4;
-            font-size: 13px;
-            color: #333;
+            font-size: 16px;
+            color: #222;
+            font-weight: 500;
+            line-height: 1.15;
           }
+          
+          /* Dynamic font sizing based on medicine count */
+          .medicines-table.med-count-6-10 th,
+          .medicines-table.med-count-6-10 td {
+            font-size: 13px;
+            padding: 2px 3px;
+            line-height: 1.1;
+          }
+          
+          .medicines-table.med-count-11-15 th,
+          .medicines-table.med-count-11-15 td {
+            font-size: 11px;
+            padding: 2px;
+            line-height: 1.05;
+          }
+          
+          .medicines-table.med-count-16-plus th,
+          .medicines-table.med-count-16-plus td {
+            font-size: 10px;
+            padding: 1px 2px;
+            line-height: 1.05;
+          }
+          
           .medicines-table tbody tr:last-child td {
             border-bottom: none;
           }
-          .medicines-table tbody tr:hover {
+          
+          .medicines-table tbody tr:nth-child(even) {
             background: #FDFBF7;
           }
+          
           .signature-section {
-            margin-top: 15px;
-            margin-bottom: 10px;
+            margin-top: 8px;
+            margin-bottom: 4px;
             display: flex;
             justify-content: flex-end;
-            padding-right: 30px;
+            padding-right: 35px;
           }
+          
           .signature-box {
             text-align: center;
-            min-width: 150px;
+            min-width: 170px;
           }
+          
           .signature-line {
             height: 30px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1.5px solid #333;
             margin-bottom: 3px;
           }
+          
           .signature-label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 600;
+            font-size: 17px;
+            color: #555;
+            font-weight: 700;
           }
+          
           .footer {
-            margin-top: 15px;
-            padding-top: 8px;
-            border-top: 2px solid #D4B5A0;
-            background: linear-gradient(to bottom, transparent, #FDFBF7);
+            margin-top: auto;
+            padding: 8px 15px 6px 15px;
+            border-top: 3px solid #C9A88D;
+            background: linear-gradient(to bottom, #fff, #FDFBF7);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 145px;
           }
+          
           .doctor-info {
             text-align: center;
-            padding: 8px;
+            padding: 6px 8px;
             background: white;
             border-radius: 4px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-            border: 1px solid #E8D5C4;
-            margin-bottom: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            border: 1.5px solid #D4B5A0;
+            margin-bottom: 3px;
           }
+          
           .doctor-info h3 {
-            font-size: 15px;
-            color: #D4B5A0;
+            font-size: 19px;
+            color: #C9A88D;
             margin-bottom: 2px;
             font-weight: 700;
             letter-spacing: 0.3px;
           }
+          
           .designation {
-            font-size: 12px;
-            color: #555;
+            font-size: 16px;
+            color: #444;
             font-weight: 600;
             margin-bottom: 1px;
           }
+          
           .reg-no {
-            font-size: 11px;
-            color: #888;
+            font-size: 14px;
+            color: #777;
             font-style: italic;
-            margin-bottom: 4px;
-          }
-          .specialities {
-            font-size: 11px;
-            color: #444;
-            padding: 4px 8px;
-            background: #F5EBE0;
-            border-radius: 4px;
-            margin: 4px auto;
-            max-width: 90%;
-            border-left: 2px solid #C9A88D;
-          }
-          .specialities strong {
-            color: #D4B5A0;
-            font-weight: 700;
-          }
-          .contact-info {
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid #E8D5C4;
-          }
-          .address {
-            font-size: 11px;
-            color: #555;
             margin-bottom: 3px;
+          }
+          
+          .specialities {
+            font-size: 14px;
+            color: #333;
+            padding: 3px 8px;
+            background: #F5EBE0;
+            border-radius: 3px;
+            margin: 3px auto;
+            max-width: 90%;
+            border-left: 3px solid #C9A88D;
             line-height: 1.3;
           }
-          .phone {
-            font-size: 11px;
+          
+          .specialities strong {
+            color: #C9A88D;
+            font-weight: 700;
+          }
+          
+          .contact-info {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1.5px solid #E8D5C4;
+          }
+          
+          .address {
+            font-size: 14px;
             color: #444;
-            font-weight: 600;
+            margin-bottom: 2px;
+            line-height: 1.3;
+            font-weight: 500;
+          }
+          
+          .phone {
+            font-size: 14px;
+            color: #333;
+            font-weight: 700;
             letter-spacing: 0.2px;
           }
+          
           .generation-date {
             text-align: center;
-            color: #999;
-            font-size: 7px;
+            color: #888;
+            font-size: 9px;
             font-style: italic;
-            margin-top: 4px;
+            margin-top: 2px;
           }
+          
           @media print {
-            @page {
-              margin: 8mm;
-              size: A4;
+            html, body {
+              width: 210mm;
+              height: 297mm;
             }
-            body { padding: 0; }
-            .footer { page-break-inside: avoid; }
-            .signature-section { page-break-inside: avoid; }
+            
+            body {
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .footer {
+              page-break-inside: avoid;
+              position: absolute;
+              bottom: 0;
+            }
+            
+            .signature-section {
+              page-break-inside: avoid;
+            }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
-          <h1>Dr. Karthika Skin Clinic</h1>
-          <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
-        </div>
+        <div class="content-wrapper">
+          <div class="header">
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
+            <h1>Dr. Karthika Skin Clinic</h1>
+            <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
+          </div>
 
-        <div class="patient-info">
-          <div class="info-field">
-            <span class="info-label">Patient ID:</span>
-            <span class="info-value">${formData.patient_id || 'N/A'}</span>
+          <div class="patient-info">
+            <div class="info-field">
+              <span class="info-label">Patient ID:</span>
+              <span class="info-value">${formData.patient_id || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Patient Name:</span>
+              <span class="info-value">${formData.patient_name || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Date:</span>
+              <span class="info-value">${formData.date || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Age:</span>
+              <span class="info-value">${formData.age || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Blood Pressure:</span>
+              <span class="info-value">${formData.blood_pressure || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Pulse:</span>
+              <span class="info-value">${formData.pulse || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Gender:</span>
+              <span class="info-value">${formData.gender || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Weight:</span>
+              <span class="info-value">${formData.weight || 'N/A'}</span>
+            </div>
           </div>
-          <div class="info-field">
-            <span class="info-label">Patient Name:</span>
-            <span class="info-value">${formData.patient_name || 'N/A'}</span>
-          </div>
-          <div class="info-field">
-            <span class="info-label">Date:</span>
-            <span class="info-value">${formData.date || 'N/A'}</span>
-          </div>
-          <div class="info-field">
-            <span class="info-label">Age:</span>
-            <span class="info-value">${formData.age || 'N/A'}</span>
-          </div>
-          <div class="info-field">
-            <span class="info-label">Blood Pressure:</span>
-            <span class="info-value">${formData.blood_pressure || 'N/A'}</span>
-          </div>
-          <div class="info-field">
-            <span class="info-label">Pulse:</span>
-            <span class="info-value">${formData.pulse || 'N/A'}</span>
-          </div>
-          <div class="info-field">
-            <span class="info-label">Gender:</span>
-            <span class="info-value">${formData.gender || 'N/A'}</span>
-          </div>
-          <div class="info-field">
-            <span class="info-label">Weight:</span>
-            <span class="info-value">${formData.weight || 'N/A'}</span>
-          </div>
-        </div>
 
-        <div class="section">
-          <div class="section-title">Symptoms</div>
-          <div class="section-content">${formData.symptoms || 'No symptoms recorded'}</div>
-        </div>
+          <div class="section">
+            <div class="section-title">Symptoms</div>
+            <div class="section-content">${formData.symptoms || 'No symptoms recorded'}</div>
+          </div>
 
-        <div class="section">
-          <div class="section-title">Findings</div>
-          <div class="section-content">${formData.findings || 'No findings recorded'}</div>
-        </div>
+          <div class="section">
+            <div class="section-title">Findings</div>
+            <div class="section-content">${formData.findings || 'No findings recorded'}</div>
+          </div>
 
-        <div class="section">
-          <div class="section-title">Diagnosis</div>
-          <div class="section-content">${formData.diagnosis || 'No diagnosis recorded'}</div>
-        </div>
+          <div class="section">
+            <div class="section-title">Diagnosis</div>
+            <div class="section-content">${formData.diagnosis || 'No diagnosis recorded'}</div>
+          </div>
 
-        <div class="section">
-          <div class="section-title">Procedures</div>
-          <div class="section-content">${formData.procedures || 'No procedures recorded'}</div>
-        </div>
+          <div class="section">
+            <div class="section-title">Procedures</div>
+            <div class="section-content">${formData.procedures || 'No procedures recorded'}</div>
+          </div>
 
-        ${formData.medicines.length > 0 ? `
-        <div class="section">
-          <div class="section-title">Medicines Prescribed</div>
-          <table class="medicines-table">
-            <thead>
-              <tr>
-                <th style="width: 8%;">Sr.</th>
-                <th style="width: 30%;">Medicine</th>
-                <th style="width: 12%;">Form</th>
-                <th style="width: 10%;">Time</th>
-                <th style="width: 22%;">Frequency</th>
-                <th style="width: 18%;">Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${formData.medicines.map((med: Medicine, index: number) => `
+          ${formData.medicines.length > 0 ? `
+          <div class="section">
+            <div class="section-title">Medicines Prescribed</div>
+            <table class="medicines-table ${
+              formData.medicines.length >= 16 ? 'med-count-16-plus' :
+              formData.medicines.length >= 11 ? 'med-count-11-15' :
+              formData.medicines.length >= 6 ? 'med-count-6-10' : ''
+            }">
+              <thead>
                 <tr>
-                  <td>${index + 1}</td>
-                  <td>${med.name}</td>
-                  <td>${med.medicine_form}</td>
-                  <td>${med.time}</td>
-                  <td>${med.frequency}</td>
-                  <td>${med.duration}</td>
+                  <th style="width: 8%;">Sr.</th>
+                  <th style="width: 32%;">Medicine</th>
+                  <th style="width: 10%;">Qty</th>
+                  <th style="width: 10%;">Time</th>
+                  <th style="width: 22%;">Frequency</th>
+                  <th style="width: 18%;">Duration</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-        ` : ''}
+              </thead>
+              <tbody>
+                ${formData.medicines.map((med: Medicine, index: number) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${med.name}</td>
+                    <td>${med.quantity || 'N/A'}</td>
+                    <td>${med.time}</td>
+                    <td>${med.frequency}</td>
+                    <td>${med.duration}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
 
-        <div class="signature-section">
-          <div class="signature-box">
-            <div class="signature-line"></div>
-            <p class="signature-label">Doctor's Signature</p>
+          <div class="signature-section">
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <p class="signature-label">Doctor's Signature</p>
+            </div>
           </div>
         </div>
 
@@ -991,20 +1099,20 @@ export default function Prescription() {
                     </div>
 
                     <div className="form-group">
-                      <label>Form</label>
-                      {customFormMode[medicine.id] ? (
+                      <label>Quantity</label>
+                      {customQuantityMode[medicine.id] ? (
                         <div>
                           <input
                             type="text"
-                            placeholder="Enter custom form"
-                            value={medicine.medicine_form}
-                            onChange={(e) => updateMedicine(medicine.id, 'medicine_form', e.target.value)}
+                            placeholder="Enter custom quantity"
+                            value={medicine.quantity}
+                            onChange={(e) => updateMedicine(medicine.id, 'quantity', e.target.value)}
                           />
                           <button
                             type="button"
                             onClick={() => {
-                              setCustomFormMode({ ...customFormMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'medicine_form', 'Tablet');
+                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'quantity', '1');
                             }}
                             style={{ marginTop: '5px', fontSize: '12px' }}
                           >
@@ -1013,19 +1121,19 @@ export default function Prescription() {
                         </div>
                       ) : (
                         <select
-                          value={medicine.medicine_form}
+                          value={medicine.quantity}
                           onChange={(e) => {
                             if (e.target.value === 'CUSTOM') {
-                              setCustomFormMode({ ...customFormMode, [medicine.id]: true });
-                              updateMedicine(medicine.id, 'medicine_form', '');
+                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'quantity', '');
                             } else {
-                              updateMedicine(medicine.id, 'medicine_form', e.target.value);
+                              updateMedicine(medicine.id, 'quantity', e.target.value);
                             }
                           }}
                         >
-                          {MEDICINE_FORM_OPTIONS.map((form) => (
-                            <option key={form} value={form}>
-                              {form}
+                          {QUANTITY_OPTIONS.map((qty) => (
+                            <option key={qty} value={qty}>
+                              {qty}
                             </option>
                           ))}
                         </select>

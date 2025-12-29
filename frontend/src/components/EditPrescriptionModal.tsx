@@ -7,7 +7,7 @@ import './EditPrescriptionModal.css';
 interface Medicine {
   id: string;
   name: string;
-  medicine_form: string;
+  quantity: string;
   time: string;
   frequency: string;
   duration: string;
@@ -48,14 +48,9 @@ const DURATION_OPTIONS = [
   'CUSTOM',
 ];
 
-const MEDICINE_FORM_OPTIONS = [
-  'Tablet',
-  'Capsule',
-  'Syrup',
-  'Cream',
-  'Ointment',
-  'Drops',
-  'Injection',
+const QUANTITY_OPTIONS = [
+  '1',
+  '2',
   'N/A',
   'CUSTOM',
 ];
@@ -86,7 +81,7 @@ export default function EditPrescriptionModal({
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
-  const [customFormMode, setCustomFormMode] = useState<Record<string, boolean>>({});
+  const [customQuantityMode, setCustomQuantityMode] = useState<Record<string, boolean>>({});
   const [customTimeMode, setCustomTimeMode] = useState<Record<string, boolean>>({});
   const [customFrequencyMode, setCustomFrequencyMode] = useState<Record<string, boolean>>({});
   const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
@@ -120,7 +115,7 @@ export default function EditPrescriptionModal({
       const loadedMedicines = medsData?.map((med) => ({
         id: med.medicine_id.toString(),
         name: med.medicine_name,
-        medicine_form: med.medicine_form || 'Tablet',
+        quantity: med.quantity || '1',
         time: med.time || 'After Meal (Morning)',
         frequency: med.frequency,
         duration: med.duration,
@@ -154,7 +149,7 @@ export default function EditPrescriptionModal({
       ...formData,
       medicines: [
         ...formData.medicines,
-        { id: newId, name: '', medicine_form: 'Tablet', time: 'After Meal (Morning)', frequency: 'Once daily', duration: '1 month' },
+        { id: newId, name: '', quantity: '1', time: 'After Meal (Morning)', frequency: 'Once daily', duration: '1 month' },
       ],
     });
   };
@@ -262,7 +257,7 @@ export default function EditPrescriptionModal({
         const medicinesData = formData.medicines.map((med) => ({
           prescription_id: prescriptionId,
           medicine_name: med.name,
-          medicine_form: med.medicine_form,
+          quantity: med.quantity,
           time: med.time,
           frequency: med.frequency,
           duration: med.duration,
@@ -426,20 +421,20 @@ export default function EditPrescriptionModal({
                     </div>
 
                     <div className="medicine-field">
-                      <label>Form</label>
-                      {customFormMode[medicine.id] ? (
+                      <label>Quantity</label>
+                      {customQuantityMode[medicine.id] ? (
                         <div>
                           <input
                             type="text"
-                            placeholder="Enter custom form"
-                            value={medicine.medicine_form}
-                            onChange={(e) => updateMedicine(medicine.id, 'medicine_form', e.target.value)}
+                            placeholder="Enter custom quantity"
+                            value={medicine.quantity}
+                            onChange={(e) => updateMedicine(medicine.id, 'quantity', e.target.value)}
                           />
                           <button
                             type="button"
                             onClick={() => {
-                              setCustomFormMode({ ...customFormMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'medicine_form', 'Tablet');
+                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'quantity', '1');
                             }}
                             style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
                           >
@@ -448,19 +443,19 @@ export default function EditPrescriptionModal({
                         </div>
                       ) : (
                         <select
-                          value={medicine.medicine_form}
+                          value={medicine.quantity}
                           onChange={(e) => {
                             if (e.target.value === 'CUSTOM') {
-                              setCustomFormMode({ ...customFormMode, [medicine.id]: true });
-                              updateMedicine(medicine.id, 'medicine_form', '');
+                              setCustomQuantityMode({ ...customQuantityMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'quantity', '');
                             } else {
-                              updateMedicine(medicine.id, 'medicine_form', e.target.value);
+                              updateMedicine(medicine.id, 'quantity', e.target.value);
                             }
                           }}
                         >
-                          {MEDICINE_FORM_OPTIONS.map((form) => (
-                            <option key={form} value={form}>
-                              {form}
+                          {QUANTITY_OPTIONS.map((qty) => (
+                            <option key={qty} value={qty}>
+                              {qty}
                             </option>
                           ))}
                         </select>

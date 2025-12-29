@@ -29,7 +29,6 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
     drug_fee: '',
     procedure_fee: '',
     extra_procedures: '',
-    new_old: 'New',
     paymentmethod: 'Cash',
     referral: '',
     weight: '',
@@ -119,21 +118,21 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
       // Calculate age from year of birth
       const age = new Date().getFullYear() - patient!.year_of_birth;
 
-      // Check if patient has any previous visits
+      // Check if patient has any previous visits (using patient_id)
       const { data: previousVisits } = await supabase
         .from('visits')
         .select('visit_id')
-        .eq('phoneno', patient!.phone_no)
+        .eq('patient_id', patient!.patient_id)
         .limit(1);
 
       // Check if patient has any previous medicines records
       const { data: previousMedicines } = await supabase
         .from('medicines')
         .select('medicine_id')
-        .eq('phone_no', patient!.phone_no)
+        .eq('patient_id', patient!.patient_id)
         .limit(1);
 
-      // Determine if new or old patient
+      // Determine if new or old patient: N if no previous visits/medicines, O otherwise
       const isNewPatient = (!previousVisits || previousVisits.length === 0) && (!previousMedicines || previousMedicines.length === 0);
       const patientStatus = isNewPatient ? 'N' : 'O';
 
@@ -177,7 +176,6 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
         drug_fee: '',
         procedure_fee: '',
         extra_procedures: '',
-        new_old: 'New',
         paymentmethod: 'Cash',
         referral: '',
         weight: '',
