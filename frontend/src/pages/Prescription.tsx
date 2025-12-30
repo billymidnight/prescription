@@ -5,6 +5,11 @@ import supabase from '../lib/supabaseClient';
 import { logActivity } from '../lib/activityLog';
 import './Prescription.css';
 
+interface CustomMedicine {
+  id: number;
+  medicine_name: string;
+}
+
 interface Medicine {
   id: string;
   name: string;
@@ -95,6 +100,7 @@ const TIME_OPTIONS = [
 
 export default function Prescription() {
   const [searchParams] = useSearchParams();
+  const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
   const [formData, setFormData] = useState<PrescriptionData>({
     visit_id: '',
     patient_id: '',
@@ -139,6 +145,34 @@ export default function Prescription() {
       fetchVisit(visitId);
     }
   }, [searchParams, searchParams.get('visit_id')]);
+
+  // Fetch custom medicines from DB and merge with hardcoded ones
+  useEffect(() => {
+    const fetchCustomMedicines = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('custom_medicines')
+          .select('medicine_name')
+          .order('medicine_name', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching custom medicines:', error);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const customNames = data.map(m => m.medicine_name);
+          // Merge hardcoded with custom, remove duplicates, and sort
+          const merged = [...new Set([...CLINIC_MEDICINES, ...customNames])].sort();
+          setAllMedicines(merged);
+        }
+      } catch (error) {
+        console.error('Error in fetchCustomMedicines:', error);
+      }
+    };
+
+    fetchCustomMedicines();
+  }, []);
 
   const fetchVisit = async (visitId: string) => {
     console.log('📋 [fetchVisit] Starting fetch for visit_id:', visitId);
@@ -325,6 +359,19 @@ export default function Prescription() {
         med.id === id ? { ...med, [field]: value } : med
       ),
     });
+  };
+
+  const getFilteredMedicines = (searchTerm: string) => {
+    if (!searchTerm) return [];
+    return allMedicines.filter((med) =>
+      med.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  const selectMedicine = (id: string, medicineName: string) => {
+    updateMedicine(id, 'name', medicineName);
+    setShowMedicineDropdown({ ...showMedicineDropdown, [id]: false });
+    setMedicineSearchTerms({ ...medicineSearchTerms, [id]: medicineName });
   };
 
   const savePrescriptionToDB = async () => {
@@ -1191,24 +1238,17 @@ export default function Prescription() {
                               >
                                 ✏️ CUSTOM - Enter manually
                               </div>
-                              {CLINIC_MEDICINES
-                                .filter(med => 
-                                  med.toLowerCase().includes((medicineSearchTerms[medicine.id] || medicine.name).toLowerCase())
-                                )
-                                .slice(0, 10)
-                                .map((med) => (
+                              {getFilteredMedicines(medicineSearchTerms[medicine.id] || medicine.name).map(
+                                (med, idx) => (
                                   <div
-                                    key={med}
+                                    key={idx}
                                     className="medicine-option"
-                                    onClick={() => {
-                                      updateMedicine(medicine.id, 'name', med);
-                                      setMedicineSearchTerms({ ...medicineSearchTerms, [medicine.id]: med });
-                                      setShowMedicineDropdown({ ...showMedicineDropdown, [medicine.id]: false });
-                                    }}
+                                    onClick={() => selectMedicine(medicine.id, med)}
                                   >
                                     {med}
                                   </div>
-                                ))}
+                                )
+                              )}
                             </div>
                           )}
                         </div>
@@ -1233,7 +1273,7 @@ export default function Prescription() {
                             }}
                             style={{ marginTop: '5px', fontSize: '12px' }}
                           >
-                            ← Back to dropdown
+                            &larr; Back to dropdown
                           </button>
                         </div>
                       ) : (

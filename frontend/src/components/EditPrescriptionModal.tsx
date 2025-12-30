@@ -4,6 +4,11 @@ import { CLINIC_MEDICINES } from '../data/medicines';
 import { logActivity } from '../lib/activityLog';
 import './EditPrescriptionModal.css';
 
+interface CustomMedicine {
+  id: number;
+  medicine_name: string;
+}
+
 interface Medicine {
   id: string;
   name: string;
@@ -78,6 +83,7 @@ export default function EditPrescriptionModal({
     medicines: [] as Medicine[],
   });
   const [loading, setLoading] = useState(false);
+  const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
@@ -87,10 +93,31 @@ export default function EditPrescriptionModal({
   const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    fetchCustomMedicines();
+  }, []);
+
+  useEffect(() => {
     if (isOpen && prescriptionId) {
       loadPrescriptionData();
     }
   }, [isOpen, prescriptionId]);
+
+  const fetchCustomMedicines = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('custom_medicines')
+        .select('medicine_name')
+        .order('medicine_name', { ascending: true });
+
+      if (error) throw error;
+
+      const customMeds = data?.map((m: any) => m.medicine_name) || [];
+      const merged = [...CLINIC_MEDICINES, ...customMeds].sort();
+      setAllMedicines(merged);
+    } catch (error) {
+      console.error('Error fetching custom medicines:', error);
+    }
+  };
 
   const loadPrescriptionData = async () => {
     setLoading(true);
@@ -184,7 +211,7 @@ export default function EditPrescriptionModal({
 
   const getFilteredMedicines = (searchTerm: string) => {
     if (!searchTerm) return [];
-    return CLINIC_MEDICINES.filter((med) =>
+    return allMedicines.filter((med) =>
       med.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
