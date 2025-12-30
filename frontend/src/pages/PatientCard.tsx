@@ -556,6 +556,9 @@ export default function PatientCard() {
                           
                           <div className="prescription-vitals">
                             <div className="vital-item">
+                              <strong>Age:</strong> {visit.age || 'N/A'}
+                            </div>
+                            <div className="vital-item">
                               <strong>Weight:</strong> {visit.weight || 'N/A'}
                             </div>
                             <div className="vital-item">

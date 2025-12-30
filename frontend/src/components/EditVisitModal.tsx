@@ -247,18 +247,6 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
               </select>
             </div>
 
-            <div className="form-group">
-              <label>New/Old Patient</label>
-              <select
-                value={formData.new_old}
-                onChange={(e) => setFormData({ ...formData, new_old: e.target.value })}
-              >
-                <option value="">Select</option>
-                <option value="New">New</option>
-                <option value="Old">Old</option>
-              </select>
-            </div>
-
             <div className="form-group full-width">
               <label>Extra Procedures</label>
               {!customProcedure ? (

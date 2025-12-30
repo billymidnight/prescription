@@ -112,6 +112,11 @@ export default function Prescription() {
     medicines: [],
   });
 
+  // Print-only fields (not saved to DB)
+  const [investigations, setInvestigations] = useState('');
+  const [reviewDate, setReviewDate] = useState('');
+  const [instructions, setInstructions] = useState('');
+
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
@@ -452,7 +457,6 @@ export default function Prescription() {
           
           html, body {
             width: 210mm;
-            height: 297mm;
             margin: 0;
             padding: 0;
           }
@@ -461,17 +465,26 @@ export default function Prescription() {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background: white;
             color: #222;
-            display: flex;
-            flex-direction: column;
+          }
+          
+          .page {
+            width: 210mm;
             height: 297mm;
             padding: 0;
             position: relative;
+            page-break-after: always;
+            overflow: hidden;
+          }
+          
+          .page:last-child {
+            page-break-after: auto;
           }
           
           .content-wrapper {
-            flex: 1;
             padding: 8px 15px 0 15px;
-            padding-bottom: 155px;
+            padding-bottom: 130px;
+            height: calc(297mm - 130px);
+            overflow: hidden;
           }
           
           .header {
@@ -569,13 +582,15 @@ export default function Prescription() {
           }
           
           .medicines-table th {
-            background: #D4B5A0;
+            background: #B8956F;
             color: #fff;
-            font-weight: 700;
+            font-weight: 900;
             padding: 4px 3px;
             text-align: left;
             border-bottom: 1.5px solid #C9A88D;
             font-size: 16px;
+            text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.3px;
           }
           
           .medicines-table td {
@@ -644,58 +659,58 @@ export default function Prescription() {
           
           .footer {
             margin-top: auto;
-            padding: 8px 15px 6px 15px;
+            padding: 6px 15px 4px 15px;
             border-top: 3px solid #C9A88D;
             background: linear-gradient(to bottom, #fff, #FDFBF7);
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 145px;
+            height: 130px;
           }
           
           .doctor-info {
             text-align: center;
-            padding: 6px 8px;
+            padding: 4px 6px;
             background: white;
             border-radius: 4px;
             box-shadow: 0 1px 4px rgba(0,0,0,0.08);
             border: 1.5px solid #D4B5A0;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
           }
           
           .doctor-info h3 {
-            font-size: 19px;
+            font-size: 17px;
             color: #C9A88D;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             font-weight: 700;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
           }
           
           .designation {
-            font-size: 16px;
+            font-size: 14px;
             color: #444;
             font-weight: 600;
             margin-bottom: 1px;
           }
           
           .reg-no {
-            font-size: 14px;
+            font-size: 12px;
             color: #777;
             font-style: italic;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
           }
           
           .specialities {
-            font-size: 14px;
+            font-size: 12px;
             color: #333;
-            padding: 3px 8px;
+            padding: 2px 6px;
             background: #F5EBE0;
             border-radius: 3px;
-            margin: 3px auto;
+            margin: 2px auto;
             max-width: 90%;
             border-left: 3px solid #C9A88D;
-            line-height: 1.3;
+            line-height: 1.2;
           }
           
           .specialities strong {
@@ -704,24 +719,24 @@ export default function Prescription() {
           }
           
           .contact-info {
-            margin-top: 4px;
-            padding-top: 4px;
+            margin-top: 3px;
+            padding-top: 3px;
             border-top: 1.5px solid #E8D5C4;
           }
           
           .address {
-            font-size: 14px;
+            font-size: 12px;
             color: #444;
             margin-bottom: 2px;
-            line-height: 1.3;
+            line-height: 1.2;
             font-weight: 500;
           }
           
           .phone {
-            font-size: 14px;
+            font-size: 12px;
             color: #333;
             font-weight: 700;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.1px;
           }
           
           .generation-date {
@@ -735,12 +750,14 @@ export default function Prescription() {
           @media print {
             html, body {
               width: 210mm;
-              height: 297mm;
             }
             
-            body {
-              display: flex;
-              flex-direction: column;
+            .page {
+              page-break-after: always;
+            }
+            
+            .page:last-child {
+              page-break-after: auto;
             }
             
             .footer {
@@ -756,12 +773,14 @@ export default function Prescription() {
         </style>
       </head>
       <body>
-        <div class="content-wrapper">
-          <div class="header">
-            ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
-            <h1>Dr. Karthika Skin Clinic</h1>
-            <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
-          </div>
+        <!-- PAGE 1 -->
+        <div class="page">
+          <div class="content-wrapper">
+            <div class="header">
+              ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
+              <h1>Dr. Karthika Skin Clinic</h1>
+              <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
+            </div>
 
           <div class="patient-info">
             <div class="info-field">
@@ -770,7 +789,7 @@ export default function Prescription() {
             </div>
             <div class="info-field">
               <span class="info-label">Patient Name:</span>
-              <span class="info-value">${formData.patient_name || 'N/A'}</span>
+              <span class="info-value">${formData.gender === 'Male' ? 'Mr. ' : 'Ms. '}${formData.patient_name || 'N/A'}</span>
             </div>
             <div class="info-field">
               <span class="info-label">Date:</span>
@@ -778,15 +797,15 @@ export default function Prescription() {
             </div>
             <div class="info-field">
               <span class="info-label">Age:</span>
-              <span class="info-value">${formData.age || 'N/A'}</span>
+              <span class="info-value">${formData.age ? formData.age + ' Years' : 'N/A'}</span>
             </div>
             <div class="info-field">
               <span class="info-label">Blood Pressure:</span>
-              <span class="info-value">${formData.blood_pressure || 'N/A'}</span>
+              <span class="info-value">${formData.blood_pressure ? formData.blood_pressure + ' mmHg' : 'N/A'}</span>
             </div>
             <div class="info-field">
               <span class="info-label">Pulse:</span>
-              <span class="info-value">${formData.pulse || 'N/A'}</span>
+              <span class="info-value">${formData.pulse ? formData.pulse + ' bpm' : 'N/A'}</span>
             </div>
             <div class="info-field">
               <span class="info-label">Gender:</span>
@@ -794,7 +813,7 @@ export default function Prescription() {
             </div>
             <div class="info-field">
               <span class="info-label">Weight:</span>
-              <span class="info-value">${formData.weight || 'N/A'}</span>
+              <span class="info-value">${formData.weight ? formData.weight + ' Kg' : 'N/A'}</span>
             </div>
           </div>
 
@@ -879,6 +898,71 @@ export default function Prescription() {
           </div>
           <p class="generation-date">Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
         </div>
+      </div>
+
+      <!-- PAGE 2 -->
+      <div class="page">
+        <div class="content-wrapper">
+          <div class="header">
+            ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
+            <h1>Dr. Karthika Skin Clinic</h1>
+            <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
+          </div>
+
+          <div class="patient-info" style="margin-bottom: 10px;">
+            <div class="info-field">
+              <span class="info-label">Patient Name:</span>
+              <span class="info-value">${formData.gender === 'Male' ? 'Mr. ' : 'Ms. '}${formData.patient_name || 'N/A'}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">Patient ID:</span>
+              <span class="info-value">${formData.patient_id || 'N/A'}</span>
+            </div>
+          </div>
+
+          <div class="section" style="margin-bottom: 10px;">
+            <div class="section-title">Investigations</div>
+            <div class="section-content" style="min-height: 60px; font-size: 16px; line-height: 1.3;">${investigations || 'No investigations recorded'}</div>
+          </div>
+
+          <div class="section" style="margin-bottom: 10px;">
+            <div class="section-title">Review Date</div>
+            <div class="section-content" style="font-size: 16px;">${reviewDate || 'Not specified'}</div>
+          </div>
+
+          <div class="section" style="margin-bottom: 10px;">
+            <div class="section-title">Instructions</div>
+            <div class="section-content" style="min-height: 60px; font-size: 16px; line-height: 1.3;">${instructions || 'No instructions recorded'}</div>
+          </div>
+
+          <div class="signature-section" style="margin-top: 20px;">
+            <div class="signature-box">
+              <div class="signature-line"></div>
+              <p class="signature-label">Doctor's Signature</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="doctor-info">
+            <h3>Dr. Karthika M.B., M.D (Derm)</h3>
+            <p class="designation">Dermatologist & Dermatosurgeon</p>
+            <p class="reg-no">Reg. No. 69402</p>
+            <p class="specialities">
+              <strong>Specialities:</strong> Hair Transplantation | Cutaneous | LASER Surgery
+            </p>
+            <div class="contact-info">
+              <p class="address">
+                #1113 to 1116, MTP Road, Opp. Central Theatre, Coimbatore – 641002
+              </p>
+              <p class="phone">
+                📞 +91 95855 33120 &nbsp;&nbsp;|&nbsp;&nbsp; +91 90878 78922
+              </p>
+            </div>
+          </div>
+          <p class="generation-date">Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+        </div>
+      </div>
       </body>
       </html>
     `;
@@ -993,6 +1077,39 @@ export default function Prescription() {
               value={formData.procedures}
               onChange={handleChange}
               placeholder="Enter procedures performed..."
+              rows={4}
+            />
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h2 className="section-heading">Additional Information (Page 2 - Print Only)</h2>
+          <div className="form-group">
+            <label>Investigations</label>
+            <textarea
+              value={investigations}
+              onChange={(e) => setInvestigations(e.target.value)}
+              placeholder="Enter investigations..."
+              rows={4}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Review Date</label>
+            <input
+              type="text"
+              value={reviewDate}
+              onChange={(e) => setReviewDate(e.target.value)}
+              placeholder="e.g., 15th Jan 2025"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Instructions</label>
+            <textarea
+              value={instructions}
+              onChange={(e) => setInstructions(e.target.value)}
+              placeholder="Enter instructions for patient..."
               rows={4}
             />
           </div>
