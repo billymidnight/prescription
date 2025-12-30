@@ -26,6 +26,7 @@ interface Visit {
   Procedure_Fee: number;
   paymentmethod: string;
   consultation_type: string;
+  age?: number;
   weight?: string;
   blood_pressure?: string;
   pulse?: string;
