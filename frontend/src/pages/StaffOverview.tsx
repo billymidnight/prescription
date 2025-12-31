@@ -97,11 +97,8 @@ export default function StaffOverview() {
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
-    // Convert to IST (UTC+5:30)
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(date.getTime() + istOffset);
     
-    return istDate.toLocaleString('en-IN', {
+    return date.toLocaleString('en-IN', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

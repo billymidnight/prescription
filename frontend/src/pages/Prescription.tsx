@@ -54,53 +54,16 @@ interface PrescriptionData {
   medicines: Medicine[];
 }
 
-
-
-const FREQUENCY_OPTIONS = [
-  'Once daily',
-  'Twice daily',
-  'Three times daily',
-  'Once at night',
-  'Once in a week',
-  'Twice a week',
-  'Thrice a week',
-  'Once a day',
-  'Once a month',
-  'As needed',
-  'CUSTOM',
-];
-
-const DURATION_OPTIONS = [
-  '3 days',
-  '5 days',
-  '7 days',
-  '10 days',
-  '2 weeks',
-  '3 weeks',
-  '1 month',
-  '2 months',
-  '3 months',
-  'CUSTOM',
-];
-
-const QUANTITY_OPTIONS = [
-  '1',
-  '2',
-  'N/A',
-  'CUSTOM',
-];
-
-const TIME_OPTIONS = [
-  'After Meal (Morning)',
-  'After Meal (Evening)',
-  'Before Food',
-  'After Food',
-  'CUSTOM',
-];
-
 export default function Prescription() {
   const [searchParams] = useSearchParams();
   const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
+  
+  // Dynamic dropdown options from database
+  const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
+  const [timeOptions, setTimeOptions] = useState<string[]>(['After Meal (Morning)', 'After Meal (Evening)', 'Before Food', 'After Food', 'CUSTOM']);
+  const [frequencyOptions, setFrequencyOptions] = useState<string[]>(['Once daily', 'Twice daily', 'Three times daily', 'Once at night', 'Once in a week', 'Twice a week', 'Thrice a week', 'Once a day', 'Once a month', 'As needed', 'CUSTOM']);
+  const [durationOptions, setDurationOptions] = useState<string[]>(['3 days', '5 days', '7 days', '10 days', '2 weeks', '3 weeks', '1 month', '2 months', '3 months', 'CUSTOM']);
+  
   const [formData, setFormData] = useState<PrescriptionData>({
     visit_id: '',
     patient_id: '',
@@ -172,6 +135,61 @@ export default function Prescription() {
     };
 
     fetchCustomMedicines();
+  }, []);
+
+  // Fetch dropdown options from database
+  useEffect(() => {
+    const fetchDropdownOptions = async () => {
+      try {
+        // Fetch quantities
+        const { data: quantitiesData } = await supabase
+          .from('custom_quantities')
+          .select('quantity_value')
+          .order('quantity_value', { ascending: true });
+        
+        if (quantitiesData && quantitiesData.length > 0) {
+          const values = quantitiesData.map(q => q.quantity_value);
+          setQuantityOptions([...values, 'CUSTOM']);
+        }
+
+        // Fetch times
+        const { data: timesData } = await supabase
+          .from('custom_times')
+          .select('time_value')
+          .order('time_value', { ascending: true });
+        
+        if (timesData && timesData.length > 0) {
+          const values = timesData.map(t => t.time_value);
+          setTimeOptions([...values, 'CUSTOM']);
+        }
+
+        // Fetch frequencies
+        const { data: frequenciesData } = await supabase
+          .from('custom_frequencies')
+          .select('frequency_value')
+          .order('frequency_value', { ascending: true });
+        
+        if (frequenciesData && frequenciesData.length > 0) {
+          const values = frequenciesData.map(f => f.frequency_value);
+          setFrequencyOptions([...values, 'CUSTOM']);
+        }
+
+        // Fetch durations
+        const { data: durationsData } = await supabase
+          .from('custom_durations')
+          .select('duration_value')
+          .order('duration_value', { ascending: true });
+        
+        if (durationsData && durationsData.length > 0) {
+          const values = durationsData.map(d => d.duration_value);
+          setDurationOptions([...values, 'CUSTOM']);
+        }
+      } catch (error) {
+        console.error('Error fetching dropdown options:', error);
+      }
+    };
+
+    fetchDropdownOptions();
   }, []);
 
   const fetchVisit = async (visitId: string) => {
@@ -1288,7 +1306,7 @@ export default function Prescription() {
                             }
                           }}
                         >
-                          {QUANTITY_OPTIONS.map((qty) => (
+                          {quantityOptions.map((qty) => (
                             <option key={qty} value={qty}>
                               {qty}
                             </option>
@@ -1330,7 +1348,7 @@ export default function Prescription() {
                             }
                           }}
                         >
-                          {TIME_OPTIONS.map((timeOpt) => (
+                          {timeOptions.map((timeOpt) => (
                             <option key={timeOpt} value={timeOpt}>
                               {timeOpt}
                             </option>
@@ -1372,7 +1390,7 @@ export default function Prescription() {
                             }
                           }}
                         >
-                          {FREQUENCY_OPTIONS.map((freq) => (
+                          {frequencyOptions.map((freq) => (
                             <option key={freq} value={freq}>
                               {freq}
                             </option>
@@ -1414,7 +1432,7 @@ export default function Prescription() {
                             }
                           }}
                         >
-                          {DURATION_OPTIONS.map((dur) => (
+                          {durationOptions.map((dur) => (
                             <option key={dur} value={dur}>
                               {dur}
                             </option>
