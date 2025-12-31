@@ -35,7 +35,6 @@ export default function EditPrescriptionModal({
 }: EditPrescriptionModalProps) {
   const [formData, setFormData] = useState({
     symptoms: '',
-    findings: '',
     diagnosis: '',
     procedures: '',
     medicines: [] as Medicine[],
@@ -166,7 +165,6 @@ export default function EditPrescriptionModal({
 
       setFormData({
         symptoms: prescData.symptoms || '',
-        findings: prescData.findings || '',
         diagnosis: prescData.diagnosis || '',
         procedures: prescData.procedures || '',
         medicines: loadedMedicines,
@@ -279,7 +277,7 @@ export default function EditPrescriptionModal({
         .from('prescriptions')
         .update({
           symptoms: formData.symptoms || null,
-          findings: formData.findings || null,
+          findings: null,
           diagnosis: formData.diagnosis || null,
           procedures: formData.procedures || null,
         })
@@ -345,23 +343,12 @@ export default function EditPrescriptionModal({
           ) : (
             <>
               <div className="form-group">
-                <label>Symptoms</label>
+                <label>Findings and Symptoms</label>
                 <textarea
                   name="symptoms"
                   value={formData.symptoms}
                   onChange={handleChange}
-                  placeholder="Enter symptoms..."
-                  rows={4}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Findings</label>
-                <textarea
-                  name="findings"
-                  value={formData.findings}
-                  onChange={handleChange}
-                  placeholder="Enter findings..."
+                  placeholder="Describe findings and symptoms..."
                   rows={4}
                 />
               </div>

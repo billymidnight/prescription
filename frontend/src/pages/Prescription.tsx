@@ -48,7 +48,6 @@ interface PrescriptionData {
   gender: string;
   weight: string;
   symptoms: string;
-  findings: string;
   diagnosis: string;
   procedures: string;
   medicines: Medicine[];
@@ -75,15 +74,12 @@ export default function Prescription() {
     gender: 'Male',
     weight: '',
     symptoms: '',
-    findings: '',
     diagnosis: '',
     procedures: '',
     medicines: [],
   });
 
-  // Print-only fields (not saved to DB)
-  const [investigations, setInvestigations] = useState('');
-  const [reviewDate, setReviewDate] = useState('');
+  // Print-only field (not saved to DB)
   const [instructions, setInstructions] = useState('');
 
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
@@ -318,7 +314,6 @@ export default function Prescription() {
             blood_pressure: visitData.blood_pressure || '',
             pulse: visitData.pulse || '',
             symptoms: prescData?.symptoms || '',
-            findings: prescData?.findings || '',
             diagnosis: prescData?.diagnosis || '',
             procedures: prescData?.procedures || '',
             medicines: loadedMedicines,
@@ -407,7 +402,7 @@ export default function Prescription() {
           .from('prescriptions')
           .update({
             symptoms: formData.symptoms || null,
-            findings: formData.findings || null,
+            findings: null,
             diagnosis: formData.diagnosis || null,
             procedures: formData.procedures || null,
           })
@@ -429,7 +424,7 @@ export default function Prescription() {
           .insert({
             visit_id: parseInt(formData.visit_id),
             symptoms: formData.symptoms || null,
-            findings: formData.findings || null,
+            findings: null,
             diagnosis: formData.diagnosis || null,
             procedures: formData.procedures || null,
           })
@@ -883,13 +878,8 @@ export default function Prescription() {
           </div>
 
           <div class="section">
-            <div class="section-title">Symptoms</div>
-            <div class="section-content">${formData.symptoms || 'No symptoms recorded'}</div>
-          </div>
-
-          <div class="section">
-            <div class="section-title">Findings</div>
-            <div class="section-content">${formData.findings || 'No findings recorded'}</div>
+            <div class="section-title">Findings and Symptoms</div>
+            <div class="section-content">${formData.symptoms || 'No findings and symptoms recorded'}</div>
           </div>
 
           <div class="section">
@@ -936,71 +926,14 @@ export default function Prescription() {
           </div>
           ` : ''}
 
-          <div class="signature-section">
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <p class="signature-label">Doctor's Signature</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer">
-          <div class="doctor-info">
-            <h3>Dr. Karthika M.B., M.D (Derm)</h3>
-            <p class="designation">Dermatologist & Dermatosurgeon</p>
-            <p class="reg-no">Reg. No. 69402</p>
-            <p class="specialities">
-              <strong>Specialities:</strong> Hair Transplantation | Cutaneous | LASER Surgery
-            </p>
-            <div class="contact-info">
-              <p class="address">
-                #1113 to 1116, MTP Road, Opp. Central Theatre, Coimbatore – 641002
-              </p>
-              <p class="phone">
-                📞 +91 95855 33120 &nbsp;&nbsp;|&nbsp;&nbsp; +91 90878 78922
-              </p>
-            </div>
-          </div>
-          <p class="generation-date">Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-        </div>
-      </div>
-
-      <!-- PAGE 2 -->
-      <div class="page">
-        <div class="content-wrapper">
-          <div class="header">
-            ${logoBase64 ? `<img src="${logoBase64}" alt="Clinic Logo" class="header-logo" />` : ''}
-            <h1>Dr. Karthika Skin Clinic</h1>
-            <p>SKIN <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> HAIR <span style="color: #d4af37; font-weight: bold; font-size: 1.2em;">✦</span> NAIL</p>
-          </div>
-
-          <div class="patient-info" style="margin-bottom: 10px;">
-            <div class="info-field">
-              <span class="info-label">Patient Name:</span>
-              <span class="info-value">${formData.gender === 'Male' ? 'Mr. ' : 'Ms. '}${formData.patient_name || 'N/A'}</span>
-            </div>
-            <div class="info-field">
-              <span class="info-label">Patient ID:</span>
-              <span class="info-value">${formData.patient_id || 'N/A'}</span>
-            </div>
-          </div>
-
-          <div class="section" style="margin-bottom: 10px;">
-            <div class="section-title">Investigations</div>
-            <div class="section-content" style="min-height: 60px; font-size: 16px; line-height: 1.3;">${investigations || 'No investigations recorded'}</div>
-          </div>
-
-          <div class="section" style="margin-bottom: 10px;">
-            <div class="section-title">Review Date</div>
-            <div class="section-content" style="font-size: 16px;">${reviewDate || 'Not specified'}</div>
-          </div>
-
-          <div class="section" style="margin-bottom: 10px;">
+          ${instructions ? `
+          <div class="section">
             <div class="section-title">Instructions</div>
-            <div class="section-content" style="min-height: 60px; font-size: 16px; line-height: 1.3;">${instructions || 'No instructions recorded'}</div>
+            <div class="section-content" style="min-height: 40px; font-size: 14px; line-height: 1.3;">${instructions}</div>
           </div>
+          ` : ''}
 
-          <div class="signature-section" style="margin-top: 20px;">
+          <div class="signature-section">
             <div class="signature-box">
               <div class="signature-line"></div>
               <p class="signature-label">Doctor's Signature</p>
@@ -1103,23 +1036,12 @@ export default function Prescription() {
           <h2 className="section-heading">Medical Details</h2>
           
           <div className="form-group">
-            <label>Symptoms</label>
+            <label>Findings and Symptoms</label>
             <textarea
               name="symptoms"
               value={formData.symptoms}
               onChange={handleChange}
-              placeholder="Describe patient symptoms..."
-              rows={4}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Findings</label>
-            <textarea
-              name="findings"
-              value={formData.findings}
-              onChange={handleChange}
-              placeholder="Enter clinical findings..."
+              placeholder="Describe findings and symptoms..."
               rows={4}
             />
           </div>
@@ -1148,27 +1070,7 @@ export default function Prescription() {
         </div>
 
         <div className="form-section">
-          <h2 className="section-heading">Additional Information (Page 2 - Print Only)</h2>
-          <div className="form-group">
-            <label>Investigations</label>
-            <textarea
-              value={investigations}
-              onChange={(e) => setInvestigations(e.target.value)}
-              placeholder="Enter investigations..."
-              rows={4}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Review Date</label>
-            <input
-              type="text"
-              value={reviewDate}
-              onChange={(e) => setReviewDate(e.target.value)}
-              placeholder="e.g., 15th Jan 2025"
-            />
-          </div>
-
+          <h2 className="section-heading">Additional Information (Print Only)</h2>
           <div className="form-group">
             <label>Instructions</label>
             <textarea

@@ -571,13 +571,8 @@ export default function PatientCard() {
                           </div>
 
                           <div className="prescription-section">
-                            <strong>Symptoms:</strong>
+                            <strong>Findings and Symptoms:</strong>
                             <p className="prescription-text">{prescriptions[visit.visit_id].symptoms || 'N/A'}</p>
-                          </div>
-
-                          <div className="prescription-section">
-                            <strong>Findings:</strong>
-                            <p className="prescription-text">{prescriptions[visit.visit_id].findings || 'N/A'}</p>
                           </div>
 
                           <div className="prescription-section">
