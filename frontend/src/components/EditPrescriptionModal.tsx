@@ -14,7 +14,7 @@ interface Medicine {
   name: string;
   quantity: string;
   time: string;
-  frequency: string;
+  areasite: string;
   duration: string;
 }
 
@@ -45,7 +45,7 @@ export default function EditPrescriptionModal({
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
   const [timeOptions, setTimeOptions] = useState<string[]>(['After Meal (Morning)', 'After Meal (Evening)', 'Before Food', 'After Food', 'CUSTOM']);
-  const [frequencyOptions, setFrequencyOptions] = useState<string[]>(['Once daily', 'Twice daily', 'Three times daily', 'Once at night', 'Once in a week', 'Twice a week', 'Thrice a week', 'Once a day', 'Once a month', 'As needed', 'CUSTOM']);
+  const [areasiteOptions, setAreasiteOptions] = useState<string[]>(['Once daily', 'Twice daily', 'Three times daily', 'Once at night', 'Once in a week', 'Twice a week', 'Thrice a week', 'Once a day', 'Once a month', 'As needed', 'CUSTOM']);
   const [durationOptions, setDurationOptions] = useState<string[]>(['3 days', '5 days', '7 days', '10 days', '2 weeks', '3 weeks', '1 month', '2 months', '3 months', 'CUSTOM']);
   
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
@@ -53,7 +53,7 @@ export default function EditPrescriptionModal({
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
   const [customQuantityMode, setCustomQuantityMode] = useState<Record<string, boolean>>({});
   const [customTimeMode, setCustomTimeMode] = useState<Record<string, boolean>>({});
-  const [customFrequencyMode, setCustomFrequencyMode] = useState<Record<string, boolean>>({});
+  const [customAreasiteMode, setCustomAreasiteMode] = useState<Record<string, boolean>>({});
   const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -108,15 +108,15 @@ export default function EditPrescriptionModal({
         setTimeOptions([...values, 'CUSTOM']);
       }
 
-      // Fetch frequencies
-      const { data: frequenciesData } = await supabase
-        .from('custom_frequencies')
-        .select('frequency_value')
-        .order('frequency_value', { ascending: true });
+      // Fetch areasites
+      const { data: areasitesData } = await supabase
+        .from('custom_areasites')
+        .select('areasite_value')
+        .order('areasite_value', { ascending: true });
       
-      if (frequenciesData && frequenciesData.length > 0) {
-        const values = frequenciesData.map(f => f.frequency_value);
-        setFrequencyOptions([...values, 'CUSTOM']);
+      if (areasitesData && areasitesData.length > 0) {
+        const values = areasitesData.map(a => a.areasite_value);
+        setAreasiteOptions([...values, 'CUSTOM']);
       }
 
       // Fetch durations
@@ -159,7 +159,7 @@ export default function EditPrescriptionModal({
         name: med.medicine_name,
         quantity: med.quantity || '1',
         time: med.time || 'After Meal (Morning)',
-        frequency: med.frequency,
+        areasite: med.areasite,
         duration: med.duration,
       })) || [];
 
@@ -190,7 +190,7 @@ export default function EditPrescriptionModal({
       ...formData,
       medicines: [
         ...formData.medicines,
-        { id: newId, name: '', quantity: '1', time: 'After Meal (Morning)', frequency: 'Once daily', duration: '1 month' },
+        { id: newId, name: '', quantity: '1', time: 'After Meal (Morning)', areasite: 'Once daily', duration: '1 month' },
       ],
     });
   };
@@ -300,7 +300,7 @@ export default function EditPrescriptionModal({
           medicine_name: med.name,
           quantity: med.quantity,
           time: med.time,
-          frequency: med.frequency,
+          areasite: med.areasite,
           duration: med.duration,
         }));
 
@@ -535,20 +535,20 @@ export default function EditPrescriptionModal({
                     </div>
 
                     <div className="medicine-field">
-                      <label>Frequency</label>
-                      {customFrequencyMode[medicine.id] ? (
+                      <label>Area/Site</label>
+                      {customAreasiteMode[medicine.id] ? (
                         <div>
                           <input
                             type="text"
-                            placeholder="Enter custom frequency"
-                            value={medicine.frequency}
-                            onChange={(e) => updateMedicine(medicine.id, 'frequency', e.target.value)}
+                            placeholder="Enter custom area/site"
+                            value={medicine.areasite}
+                            onChange={(e) => updateMedicine(medicine.id, 'areasite', e.target.value)}
                           />
                           <button
                             type="button"
                             onClick={() => {
-                              setCustomFrequencyMode({ ...customFrequencyMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'frequency', 'Once daily');
+                              setCustomAreasiteMode({ ...customAreasiteMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'areasite', 'Once daily');
                             }}
                             style={{ marginTop: '5px', fontSize: '11px', padding: '2px 6px' }}
                           >
@@ -557,19 +557,19 @@ export default function EditPrescriptionModal({
                         </div>
                       ) : (
                         <select
-                          value={medicine.frequency}
+                          value={medicine.areasite}
                           onChange={(e) => {
                             if (e.target.value === 'CUSTOM') {
-                              setCustomFrequencyMode({ ...customFrequencyMode, [medicine.id]: true });
-                              updateMedicine(medicine.id, 'frequency', '');
+                              setCustomAreasiteMode({ ...customAreasiteMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'areasite', '');
                             } else {
-                              updateMedicine(medicine.id, 'frequency', e.target.value);
+                              updateMedicine(medicine.id, 'areasite', e.target.value);
                             }
                           }}
                         >
-                          {frequencyOptions.map((freq) => (
-                            <option key={freq} value={freq}>
-                              {freq}
+                          {areasiteOptions.map((areasite) => (
+                            <option key={areasite} value={areasite}>
+                              {areasite}
                             </option>
                           ))}
                         </select>

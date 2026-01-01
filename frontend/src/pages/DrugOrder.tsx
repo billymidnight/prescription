@@ -20,7 +20,7 @@ interface CustomTime {
 
 interface CustomFrequency {
   id: number;
-  frequency_value: string;
+  areasite_value: string;
 }
 
 interface CustomDuration {
@@ -28,7 +28,12 @@ interface CustomDuration {
   duration_value: string;
 }
 
-type TabType = 'medicines' | 'quantities' | 'times' | 'frequencies' | 'durations';
+interface CustomInstruction {
+  id: number;
+  instruction_value: string;
+}
+
+type TabType = 'medicines' | 'quantities' | 'times' | 'frequencies' | 'durations' | 'instructions';
 
 export default function DrugOrder() {
   const [activeTab, setActiveTab] = useState<TabType>('medicines');
@@ -53,6 +58,10 @@ export default function DrugOrder() {
   const [customDurations, setCustomDurations] = useState<CustomDuration[]>([]);
   const [newDuration, setNewDuration] = useState('');
   
+  // Instructions state
+  const [customInstructions, setCustomInstructions] = useState<CustomInstruction[]>([]);
+  const [newInstruction, setNewInstruction] = useState('');
+  
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,6 +77,7 @@ export default function DrugOrder() {
     fetchCustomTimes();
     fetchCustomFrequencies();
     fetchCustomDurations();
+    fetchCustomInstructions();
   };
 
   // MEDICINES CRUD
@@ -342,9 +352,9 @@ export default function DrugOrder() {
   const fetchCustomFrequencies = async () => {
     try {
       const { data, error } = await supabase
-        .from('custom_frequencies')
+        .from('custom_areasites')
         .select('*')
-        .order('frequency_value', { ascending: true });
+        .order('areasite_value', { ascending: true });
 
       if (error) throw error;
       setCustomFrequencies(data || []);
@@ -362,8 +372,8 @@ export default function DrugOrder() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('custom_frequencies')
-        .insert([{ frequency_value: newFrequency.trim() }]);
+        .from('custom_areasites')
+        .insert([{ areasite_value: newFrequency.trim() }]);
 
       if (error) throw error;
 
@@ -387,8 +397,8 @@ export default function DrugOrder() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('custom_frequencies')
-        .update({ frequency_value: editingValue.trim() })
+        .from('custom_areasites')
+        .update({ areasite_value: editingValue.trim() })
         .eq('id', id);
 
       if (error) throw error;
@@ -411,7 +421,7 @@ export default function DrugOrder() {
     setLoading(true);
     try {
       const { error } = await supabase
-        .from('custom_frequencies')
+        .from('custom_areasites')
         .delete()
         .eq('id', id);
 
@@ -516,6 +526,95 @@ export default function DrugOrder() {
     }
   };
 
+  // INSTRUCTIONS CRUD
+  const fetchCustomInstructions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('custom_instructions')
+        .select('*')
+        .order('instruction_value', { ascending: true });
+
+      if (error) throw error;
+      setCustomInstructions(data || []);
+    } catch (error: any) {
+      console.error('Error fetching instructions:', error);
+    }
+  };
+
+  const addInstruction = async () => {
+    if (!newInstruction.trim()) {
+      alert('Please enter an instruction value');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_instructions')
+        .insert([{ instruction_value: newInstruction.trim() }]);
+
+      if (error) throw error;
+
+      await logActivity(`Added custom instruction: ${newInstruction.trim()}`);
+      setNewInstruction('');
+      fetchCustomInstructions();
+    } catch (error: any) {
+      console.error('Error adding instruction:', error);
+      alert('Failed to add instruction');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateInstruction = async (id: number) => {
+    if (!editingValue.trim()) {
+      alert('Instruction value cannot be empty');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_instructions')
+        .update({ instruction_value: editingValue.trim() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(`Updated custom instruction ID ${id}`);
+      setEditingId(null);
+      setEditingValue('');
+      fetchCustomInstructions();
+    } catch (error: any) {
+      console.error('Error updating instruction:', error);
+      alert('Failed to update instruction');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteInstruction = async (id: number, value: string) => {
+    if (!confirm(`Are you sure you want to delete "${value}"?`)) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_instructions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(`Deleted custom instruction: ${value}`);
+      fetchCustomInstructions();
+    } catch (error: any) {
+      console.error('Error deleting instruction:', error);
+      alert('Failed to delete instruction');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Generic handlers
   const getCurrentData = () => {
     switch (activeTab) {
@@ -526,9 +625,11 @@ export default function DrugOrder() {
       case 'times':
         return customTimes.map(t => ({ id: t.id, value: t.time_value }));
       case 'frequencies':
-        return customFrequencies.map(f => ({ id: f.id, value: f.frequency_value }));
+        return customFrequencies.map(f => ({ id: f.id, value: f.areasite_value }));
       case 'durations':
         return customDurations.map(d => ({ id: d.id, value: d.duration_value }));
+      case 'instructions':
+        return customInstructions.map(i => ({ id: i.id, value: i.instruction_value }));
       default:
         return [];
     }
@@ -539,8 +640,9 @@ export default function DrugOrder() {
       case 'medicines': return 'Medicine';
       case 'quantities': return 'Quantity';
       case 'times': return 'Time';
-      case 'frequencies': return 'Frequency';
+      case 'frequencies': return 'Area/Site';
       case 'durations': return 'Duration';
+      case 'instructions': return 'Instruction';
       default: return '';
     }
   };
@@ -552,6 +654,7 @@ export default function DrugOrder() {
       case 'times': return newTime;
       case 'frequencies': return newFrequency;
       case 'durations': return newDuration;
+      case 'instructions': return newInstruction;
       default: return '';
     }
   };
@@ -563,6 +666,7 @@ export default function DrugOrder() {
       case 'times': setNewTime(value); break;
       case 'frequencies': setNewFrequency(value); break;
       case 'durations': setNewDuration(value); break;
+      case 'instructions': setNewInstruction(value); break;
     }
   };
 
@@ -573,6 +677,7 @@ export default function DrugOrder() {
       case 'times': addTime(); break;
       case 'frequencies': addFrequency(); break;
       case 'durations': addDuration(); break;
+      case 'instructions': addInstruction(); break;
     }
   };
 
@@ -583,6 +688,7 @@ export default function DrugOrder() {
       case 'times': updateTime(id); break;
       case 'frequencies': updateFrequency(id); break;
       case 'durations': updateDuration(id); break;
+      case 'instructions': updateInstruction(id); break;
     }
   };
 
@@ -593,6 +699,7 @@ export default function DrugOrder() {
       case 'times': deleteTime(id, value); break;
       case 'frequencies': deleteFrequency(id, value); break;
       case 'durations': deleteDuration(id, value); break;
+      case 'instructions': deleteInstruction(id, value); break;
     }
   };
 
@@ -630,13 +737,19 @@ export default function DrugOrder() {
           className={`tab-button ${activeTab === 'frequencies' ? 'active' : ''}`}
           onClick={() => setActiveTab('frequencies')}
         >
-          Frequencies
+          Area/Site
         </button>
         <button 
           className={`tab-button ${activeTab === 'durations' ? 'active' : ''}`}
           onClick={() => setActiveTab('durations')}
         >
           Durations
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'instructions' ? 'active' : ''}`}
+          onClick={() => setActiveTab('instructions')}
+        >
+          Instructions
         </button>
       </div>
 

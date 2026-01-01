@@ -31,8 +31,16 @@ interface MonthlyBreakdown {
   googleReferrals: number;
 }
 
+interface MonthlyRevenue {
+  month: string;
+  drugRevenue: number;
+  consultationFee: number;
+  procedureFee: number;
+  cashPayments: number;
+}
+
 export default function Financials() {
-  const [activeTab, setActiveTab] = useState<'daily' | 'monthly' | 'age' | 'graphs'>('daily');
+  const [activeTab, setActiveTab] = useState<'daily' | 'monthly' | 'monthlyRevenue' | 'age' | 'graphs'>('daily');
   const [dailyStats, setDailyStats] = useState<DailyStats>({
     consultationFees: 0,
     drugFees: 0,
@@ -52,11 +60,16 @@ export default function Financials() {
   const [monthlyPage, setMonthlyPage] = useState(1);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
   const monthlyRowsPerPage = 10;
+  const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue[]>([]);
+  const [monthlyRevenuePage, setMonthlyRevenuePage] = useState(1);
+  const [loadingMonthlyRevenue, setLoadingMonthlyRevenue] = useState(false);
+  const monthlyRevenueRowsPerPage = 10;
 
   useEffect(() => {
     fetchDailyStats();
     fetchDailyBreakdown();
     fetchMonthlyBreakdown();
+    fetchMonthlyRevenue();
   }, []);
 
   const fetchDailyBreakdown = async () => {
@@ -144,6 +157,88 @@ export default function Financials() {
       console.error('Error fetching monthly breakdown:', err);
     } finally {
       setLoadingMonthly(false);
+    }
+  };
+
+  const fetchMonthlyRevenue = async () => {
+    setLoadingMonthlyRevenue(true);
+    try {
+      // Fetch all visits
+      const { data: visitsData, error: visitsError } = await supabase
+        .from('visits')
+        .select('date, consultation_fee, drug_fee, Procedure_Fee, paymentmethod')
+        .order('date', { ascending: false });
+
+      if (visitsError) throw visitsError;
+
+      // Fetch all medicines
+      const { data: medicinesData, error: medicinesError } = await supabase
+        .from('medicines')
+        .select('date, drug_fee, payment_method')
+        .order('date', { ascending: false });
+
+      if (medicinesError) throw medicinesError;
+
+      // Group by month
+      const monthMap = new Map<string, MonthlyRevenue>();
+
+      // Process visits
+      (visitsData || []).forEach(visit => {
+        const date = new Date(visit.date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthMap.has(monthKey)) {
+          monthMap.set(monthKey, {
+            month: monthKey,
+            drugRevenue: 0,
+            consultationFee: 0,
+            procedureFee: 0,
+            cashPayments: 0,
+          });
+        }
+        
+        const stats = monthMap.get(monthKey)!;
+        stats.consultationFee += visit.consultation_fee || 0;
+        stats.drugRevenue += visit.drug_fee || 0;
+        stats.procedureFee += visit.Procedure_Fee || 0;
+        
+        // Add to cash payments if payment method is Cash
+        if (visit.paymentmethod?.toUpperCase() === 'CASH') {
+          stats.cashPayments += (visit.consultation_fee || 0) + (visit.drug_fee || 0) + (visit.Procedure_Fee || 0);
+        }
+      });
+
+      // Process medicines
+      (medicinesData || []).forEach(medicine => {
+        const date = new Date(medicine.date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthMap.has(monthKey)) {
+          monthMap.set(monthKey, {
+            month: monthKey,
+            drugRevenue: 0,
+            consultationFee: 0,
+            procedureFee: 0,
+            cashPayments: 0,
+          });
+        }
+        
+        const stats = monthMap.get(monthKey)!;
+        stats.drugRevenue += medicine.drug_fee || 0;
+        
+        // Add to cash payments if payment method is Cash
+        if (medicine.payment_method?.toUpperCase() === 'CASH') {
+          stats.cashPayments += medicine.drug_fee || 0;
+        }
+      });
+
+      // Convert to array and sort by month descending
+      const revenue = Array.from(monthMap.values()).sort((a, b) => b.month.localeCompare(a.month));
+      setMonthlyRevenue(revenue);
+    } catch (err: any) {
+      console.error('Error fetching monthly revenue:', err);
+    } finally {
+      setLoadingMonthlyRevenue(false);
     }
   };
 
@@ -259,6 +354,11 @@ export default function Financials() {
   const monthlyEndIndex = monthlyStartIndex + monthlyRowsPerPage;
   const currentMonthlyData = monthlyBreakdown.slice(monthlyStartIndex, monthlyEndIndex);
 
+  const totalMonthlyRevenuePages = Math.ceil(monthlyRevenue.length / monthlyRevenueRowsPerPage);
+  const monthlyRevenueStartIndex = (monthlyRevenuePage - 1) * monthlyRevenueRowsPerPage;
+  const monthlyRevenueEndIndex = monthlyRevenueStartIndex + monthlyRevenueRowsPerPage;
+  const currentMonthlyRevenueData = monthlyRevenue.slice(monthlyRevenueStartIndex, monthlyRevenueEndIndex);
+
   const handlePrevMonthlyPage = () => {
     if (monthlyPage > 1) setMonthlyPage(monthlyPage - 1);
   };
@@ -368,6 +468,12 @@ export default function Financials() {
                 onClick={() => setActiveTab('monthly')}
               >
                 Monthly Stats
+              </button>
+              <button
+                className={`tab-btn ${activeTab === 'monthlyRevenue' ? 'active' : ''}`}
+                onClick={() => setActiveTab('monthlyRevenue')}
+              >
+                Monthly Revenue
               </button>
               <button
                 className={`tab-btn ${activeTab === 'age' ? 'active' : ''}`}
@@ -505,6 +611,74 @@ export default function Financials() {
                           className="pagination-btn"
                           onClick={handleNextMonthlyPage}
                           disabled={monthlyPage === totalMonthlyPages}
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'monthlyRevenue' && (
+                <div className="tab-panel">
+                  <h3>Monthly Revenue Breakdown</h3>
+                  {loadingMonthlyRevenue ? (
+                    <div className="loading-state">
+                      <div className="spinner"></div>
+                      <p>Loading monthly revenue...</p>
+                    </div>
+                  ) : monthlyRevenue.length === 0 ? (
+                    <p className="coming-soon">No data available</p>
+                  ) : (
+                    <>
+                      <div className="monthly-breakdown-table-container">
+                        <table className="monthly-breakdown-table">
+                          <thead>
+                            <tr>
+                              <th>Month</th>
+                              <th>Drug Revenue</th>
+                              <th>Consultation Fee</th>
+                              <th>Procedure Fee</th>
+                              <th>Cash Payments</th>
+                              <th>Total Revenue</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentMonthlyRevenueData.map((monthData) => {
+                              const totalRevenue = monthData.drugRevenue + monthData.consultationFee + monthData.procedureFee;
+                              return (
+                                <tr key={monthData.month}>
+                                  <td className="month-cell">{formatMonth(monthData.month)}</td>
+                                  <td className="revenue-cell">{formatCurrency(monthData.drugRevenue)}</td>
+                                  <td className="revenue-cell">{formatCurrency(monthData.consultationFee)}</td>
+                                  <td className="revenue-cell">{formatCurrency(monthData.procedureFee)}</td>
+                                  <td className="revenue-cell">{formatCurrency(monthData.cashPayments)}</td>
+                                  <td className="revenue-cell" style={{fontWeight: 700}}>{formatCurrency(totalRevenue)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="daily-pagination">
+                        <button
+                          className="pagination-btn"
+                          onClick={() => monthlyRevenuePage > 1 && setMonthlyRevenuePage(monthlyRevenuePage - 1)}
+                          disabled={monthlyRevenuePage === 1}
+                        >
+                          ← Previous
+                        </button>
+                        <div className="pagination-info">
+                          <span>Page {monthlyRevenuePage} of {totalMonthlyRevenuePages}</span>
+                          <span className="showing-text">
+                            Showing {monthlyRevenueStartIndex + 1}-{Math.min(monthlyRevenueEndIndex, monthlyRevenue.length)} of {monthlyRevenue.length} months
+                          </span>
+                        </div>
+                        <button
+                          className="pagination-btn"
+                          onClick={() => monthlyRevenuePage < totalMonthlyRevenuePages && setMonthlyRevenuePage(monthlyRevenuePage + 1)}
+                          disabled={monthlyRevenuePage === totalMonthlyRevenuePages}
                         >
                           Next →
                         </button>

@@ -15,7 +15,7 @@ interface Medicine {
   name: string;
   quantity: string;
   time: string;
-  frequency: string;
+  areasite: string;
   duration: string;
 }
 
@@ -60,7 +60,7 @@ export default function Prescription() {
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
   const [timeOptions, setTimeOptions] = useState<string[]>(['After Meal (Morning)', 'After Meal (Evening)', 'Before Food', 'After Food', 'CUSTOM']);
-  const [frequencyOptions, setFrequencyOptions] = useState<string[]>(['Once daily', 'Twice daily', 'Three times daily', 'Once at night', 'Once in a week', 'Twice a week', 'Thrice a week', 'Once a day', 'Once a month', 'As needed', 'CUSTOM']);
+  const [areasiteOptions, setAreasiteOptions] = useState<string[]>(['Once daily', 'Twice daily', 'Three times daily', 'Once at night', 'Once in a week', 'Twice a week', 'Thrice a week', 'Once a day', 'Once a month', 'As needed', 'CUSTOM']);
   const [durationOptions, setDurationOptions] = useState<string[]>(['3 days', '5 days', '7 days', '10 days', '2 weeks', '3 weeks', '1 month', '2 months', '3 months', 'CUSTOM']);
   
   const [formData, setFormData] = useState<PrescriptionData>({
@@ -81,13 +81,15 @@ export default function Prescription() {
 
   // Print-only field (not saved to DB)
   const [instructions, setInstructions] = useState('');
+  const [instructionOptions, setInstructionOptions] = useState<string[]>(['Apply Shampoo', 'CUSTOM']);
+  const [customInstructionMode, setCustomInstructionMode] = useState(false);
 
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
   const [customQuantityMode, setCustomQuantityMode] = useState<Record<string, boolean>>({});
   const [customTimeMode, setCustomTimeMode] = useState<Record<string, boolean>>({});
-  const [customFrequencyMode, setCustomFrequencyMode] = useState<Record<string, boolean>>({});
+  const [customAreasiteMode, setCustomAreasiteMode] = useState<Record<string, boolean>>({});
   const [customDurationMode, setCustomDurationMode] = useState<Record<string, boolean>>({});
   const [patient, setPatient] = useState<Patient | null>(null);
   const [visit, setVisit] = useState<Visit | null>(null);
@@ -159,15 +161,15 @@ export default function Prescription() {
           setTimeOptions([...values, 'CUSTOM']);
         }
 
-        // Fetch frequencies
-        const { data: frequenciesData } = await supabase
-          .from('custom_frequencies')
-          .select('frequency_value')
-          .order('frequency_value', { ascending: true });
+        // Fetch areasites
+        const { data: areasitesData } = await supabase
+          .from('custom_areasites')
+          .select('areasite_value')
+          .order('areasite_value', { ascending: true });
         
-        if (frequenciesData && frequenciesData.length > 0) {
-          const values = frequenciesData.map(f => f.frequency_value);
-          setFrequencyOptions([...values, 'CUSTOM']);
+        if (areasitesData && areasitesData.length > 0) {
+          const values = areasitesData.map(f => f.areasite_value);
+          setAreasiteOptions([...values, 'CUSTOM']);
         }
 
         // Fetch durations
@@ -179,6 +181,17 @@ export default function Prescription() {
         if (durationsData && durationsData.length > 0) {
           const values = durationsData.map(d => d.duration_value);
           setDurationOptions([...values, 'CUSTOM']);
+        }
+
+        // Fetch instructions
+        const { data: instructionsData } = await supabase
+          .from('custom_instructions')
+          .select('instruction_value')
+          .order('instruction_value', { ascending: true });
+        
+        if (instructionsData && instructionsData.length > 0) {
+          const values = instructionsData.map(i => i.instruction_value);
+          setInstructionOptions([...values, 'CUSTOM']);
         }
       } catch (error) {
         console.error('Error fetching dropdown options:', error);
@@ -295,7 +308,7 @@ export default function Prescription() {
                 name: med.medicine_name,
                 quantity: med.quantity || '1',
                 time: med.time || 'After Meal (Morning)',
-                frequency: med.frequency,
+                areasite: med.areasite,
                 duration: med.duration,
               }));
             }
@@ -350,7 +363,7 @@ export default function Prescription() {
           name: '',
           quantity: '1',
           time: 'After Meal (Morning)',
-          frequency: 'Once daily',
+          areasite: 'Once daily',
           duration: '1 month',
         },
       ],
@@ -443,7 +456,7 @@ export default function Prescription() {
           medicine_name: med.name,
           quantity: med.quantity,
           time: med.time,
-          frequency: med.frequency,
+          areasite: med.areasite,
           duration: med.duration,
         }));
 
@@ -542,8 +555,8 @@ export default function Prescription() {
           
           .content-wrapper {
             padding: 8px 15px 0 15px;
-            padding-bottom: 130px;
-            height: calc(297mm - 130px);
+            padding-bottom: 150px;
+            height: calc(297mm - 150px);
             overflow: hidden;
           }
           
@@ -559,8 +572,8 @@ export default function Prescription() {
             position: absolute;
             left: 0;
             top: 0;
-            width: 70px;
-            height: 70px;
+            width: 90px;
+            height: 90px;
             object-fit: contain;
           }
           
@@ -642,15 +655,15 @@ export default function Prescription() {
           }
           
           .medicines-table th {
-            background: #B8956F;
-            color: #fff;
+            background: #fff;
+            color: #000;
             font-weight: 900;
-            padding: 4px 3px;
+            padding: 6px 4px;
             text-align: left;
-            border-bottom: 1.5px solid #C9A88D;
-            font-size: 16px;
-            text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.3);
-            letter-spacing: 0.3px;
+            border: 2px solid #000;
+            border-bottom: 3px solid #000;
+            font-size: 17px;
+            letter-spacing: 0.4px;
           }
           
           .medicines-table td {
@@ -726,7 +739,7 @@ export default function Prescription() {
             bottom: 0;
             left: 0;
             right: 0;
-            height: 130px;
+            height: 150px;
           }
           
           .doctor-info {
@@ -797,6 +810,19 @@ export default function Prescription() {
             color: #333;
             font-weight: 700;
             letter-spacing: 0.1px;
+          }
+          
+          .consultation-times {
+            font-size: 11px;
+            color: #222;
+            margin-top: 2px;
+            line-height: 1.3;
+            font-weight: 600;
+          }
+          
+          .consultation-times strong {
+            color: #C9A88D;
+            font-weight: 700;
           }
           
           .generation-date {
@@ -906,7 +932,7 @@ export default function Prescription() {
                   <th style="width: 32%;">Medicine</th>
                   <th style="width: 10%;">Qty</th>
                   <th style="width: 10%;">Time</th>
-                  <th style="width: 22%;">Frequency</th>
+                  <th style="width: 22%;">Area/Site</th>
                   <th style="width: 18%;">Duration</th>
                 </tr>
               </thead>
@@ -917,7 +943,7 @@ export default function Prescription() {
                     <td>${med.name}</td>
                     <td>${med.quantity || 'N/A'}</td>
                     <td>${med.time}</td>
-                    <td>${med.frequency}</td>
+                    <td>${med.areasite}</td>
                     <td>${med.duration}</td>
                   </tr>
                 `).join('')}
@@ -955,6 +981,9 @@ export default function Prescription() {
               </p>
               <p class="phone">
                 📞 +91 95855 33120 &nbsp;&nbsp;|&nbsp;&nbsp; +91 90878 78922
+              </p>
+              <p class="consultation-times">
+                <strong>Consultation Hours:</strong> Mon-Sat: 10:00 AM - 3:00 PM | Tue/Thu/Sat: 6:00 PM - 8:00 PM | Sun: 10:00 AM - 1:00 PM
               </p>
             </div>
           </div>
@@ -1073,12 +1102,44 @@ export default function Prescription() {
           <h2 className="section-heading">Additional Information (Print Only)</h2>
           <div className="form-group">
             <label>Instructions</label>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Enter instructions for patient..."
-              rows={4}
-            />
+            {customInstructionMode ? (
+              <div>
+                <textarea
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  placeholder="Enter custom instructions..."
+                  rows={4}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCustomInstructionMode(false);
+                    setInstructions('Apply Shampoo');
+                  }}
+                  style={{ marginTop: '5px', fontSize: '12px' }}
+                >
+                  ← Back to dropdown
+                </button>
+              </div>
+            ) : (
+              <select
+                value={instructions}
+                onChange={(e) => {
+                  if (e.target.value === 'CUSTOM') {
+                    setCustomInstructionMode(true);
+                    setInstructions('');
+                  } else {
+                    setInstructions(e.target.value);
+                  }
+                }}
+              >
+                {instructionOptions.map((instruction) => (
+                  <option key={instruction} value={instruction}>
+                    {instruction}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
 
@@ -1260,20 +1321,20 @@ export default function Prescription() {
                     </div>
 
                     <div className="form-group">
-                      <label>Frequency</label>
-                      {customFrequencyMode[medicine.id] ? (
+                      <label>Area/Site</label>
+                      {customAreasiteMode[medicine.id] ? (
                         <div>
                           <input
                             type="text"
-                            placeholder="Enter custom frequency"
-                            value={medicine.frequency}
-                            onChange={(e) => updateMedicine(medicine.id, 'frequency', e.target.value)}
+                            placeholder="Enter custom area/site"
+                            value={medicine.areasite}
+                            onChange={(e) => updateMedicine(medicine.id, 'areasite', e.target.value)}
                           />
                           <button
                             type="button"
                             onClick={() => {
-                              setCustomFrequencyMode({ ...customFrequencyMode, [medicine.id]: false });
-                              updateMedicine(medicine.id, 'frequency', 'Once daily');
+                              setCustomAreasiteMode({ ...customAreasiteMode, [medicine.id]: false });
+                              updateMedicine(medicine.id, 'areasite', 'Once daily');
                             }}
                             style={{ marginTop: '5px', fontSize: '12px' }}
                           >
@@ -1282,19 +1343,19 @@ export default function Prescription() {
                         </div>
                       ) : (
                         <select
-                          value={medicine.frequency}
+                          value={medicine.areasite}
                           onChange={(e) => {
                             if (e.target.value === 'CUSTOM') {
-                              setCustomFrequencyMode({ ...customFrequencyMode, [medicine.id]: true });
-                              updateMedicine(medicine.id, 'frequency', '');
+                              setCustomAreasiteMode({ ...customAreasiteMode, [medicine.id]: true });
+                              updateMedicine(medicine.id, 'areasite', '');
                             } else {
-                              updateMedicine(medicine.id, 'frequency', e.target.value);
+                              updateMedicine(medicine.id, 'areasite', e.target.value);
                             }
                           }}
                         >
-                          {frequencyOptions.map((freq) => (
-                            <option key={freq} value={freq}>
-                              {freq}
+                          {areasiteOptions.map((areasite) => (
+                            <option key={areasite} value={areasite}>
+                              {areasite}
                             </option>
                           ))}
                         </select>
