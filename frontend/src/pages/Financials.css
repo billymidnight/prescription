@@ -457,3 +457,137 @@
     font-size: 1.25rem;
   }
 }
+
+/* Age Stats Grid */
+.age-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.age-stats-month-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.month-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0 0 1rem 0;
+  text-align: center;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.age-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.age-stats-table th {
+  background: #f5f5f5;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.age-stats-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.age-stats-table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+/* Bar Charts */
+.graphs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.chart-card h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 2rem 0;
+  text-align: center;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 280px;
+  padding: 20px;
+  border-bottom: 2px solid #333;
+  gap: 10px;
+}
+
+.bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 80px;
+}
+
+.bar-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  min-height: 20px;
+}
+
+.bar {
+  width: 100%;
+  min-height: 5px;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bar:hover {
+  opacity: 0.8;
+  transform: translateY(-2px);
+}
+
+.bar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .age-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bar-chart {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .bar-wrapper {
+    min-width: 50px;
+  }
+}

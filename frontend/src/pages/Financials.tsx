@@ -39,6 +39,16 @@ interface MonthlyRevenue {
   cashPayments: number;
 }
 
+interface AgeBucket {
+  range: string;
+  count: number;
+}
+
+interface MonthlyAgeStats {
+  month: string;
+  ageBuckets: AgeBucket[];
+}
+
 export default function Financials() {
   const [activeTab, setActiveTab] = useState<'daily' | 'monthly' | 'monthlyRevenue' | 'age' | 'graphs'>('daily');
   const [dailyStats, setDailyStats] = useState<DailyStats>({
@@ -64,12 +74,17 @@ export default function Financials() {
   const [monthlyRevenuePage, setMonthlyRevenuePage] = useState(1);
   const [loadingMonthlyRevenue, setLoadingMonthlyRevenue] = useState(false);
   const monthlyRevenueRowsPerPage = 10;
+  const [monthlyAgeStats, setMonthlyAgeStats] = useState<MonthlyAgeStats[]>([]);
+  const [ageStatsPage, setAgeStatsPage] = useState(1);
+  const [loadingAgeStats, setLoadingAgeStats] = useState(false);
+  const ageStatsPerPage = 2;
 
   useEffect(() => {
     fetchDailyStats();
     fetchDailyBreakdown();
     fetchMonthlyBreakdown();
     fetchMonthlyRevenue();
+    fetchAgeStats();
   }, []);
 
   const fetchDailyBreakdown = async () => {
@@ -242,6 +257,80 @@ export default function Financials() {
     }
   };
 
+  const fetchAgeStats = async () => {
+    setLoadingAgeStats(true);
+    try {
+      // Fetch all visits with patient info
+      const { data: visitsData, error: visitsError } = await supabase
+        .from('visits')
+        .select('date, patient_id')
+        .order('date', { ascending: false });
+
+      if (visitsError) throw visitsError;
+
+      // Fetch all patients
+      const { data: patientsData, error: patientsError } = await supabase
+        .from('patients')
+        .select('patient_id, year_of_birth');
+
+      if (patientsError) throw patientsError;
+
+      // Create patient age map
+      const currentYear = new Date().getFullYear();
+      const patientAgeMap = new Map<number, number>();
+      (patientsData || []).forEach(patient => {
+        if (patient.year_of_birth) {
+          patientAgeMap.set(patient.patient_id, currentYear - patient.year_of_birth);
+        }
+      });
+
+      // Group by month
+      const monthMap = new Map<string, Map<string, number>>();
+
+      (visitsData || []).forEach(visit => {
+        const date = new Date(visit.date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!monthMap.has(monthKey)) {
+          monthMap.set(monthKey, new Map<string, number>());
+        }
+
+        const age = patientAgeMap.get(visit.patient_id);
+        if (age !== undefined) {
+          const ageBucketMap = monthMap.get(monthKey)!;
+          let bucket = '';
+          
+          if (age <= 10) bucket = '0-10';
+          else if (age <= 20) bucket = '11-20';
+          else if (age <= 30) bucket = '21-30';
+          else if (age <= 40) bucket = '31-40';
+          else if (age <= 50) bucket = '41-50';
+          else if (age <= 60) bucket = '51-60';
+          else if (age <= 70) bucket = '61-70';
+          else bucket = '71+';
+
+          ageBucketMap.set(bucket, (ageBucketMap.get(bucket) || 0) + 1);
+        }
+      });
+
+      // Convert to array format
+      const allBuckets = ['0-10', '11-20', '21-30', '31-40', '41-50', '51-60', '61-70', '71+'];
+      const ageStats = Array.from(monthMap.entries()).map(([month, bucketMap]) => ({
+        month,
+        ageBuckets: allBuckets.map(range => ({
+          range,
+          count: bucketMap.get(range) || 0
+        }))
+      })).sort((a, b) => b.month.localeCompare(a.month));
+
+      setMonthlyAgeStats(ageStats);
+    } catch (err: any) {
+      console.error('Error fetching age stats:', err);
+    } finally {
+      setLoadingAgeStats(false);
+    }
+  };
+
   const fetchDailyStats = async () => {
     setLoading(true);
     try {
@@ -358,6 +447,11 @@ export default function Financials() {
   const monthlyRevenueStartIndex = (monthlyRevenuePage - 1) * monthlyRevenueRowsPerPage;
   const monthlyRevenueEndIndex = monthlyRevenueStartIndex + monthlyRevenueRowsPerPage;
   const currentMonthlyRevenueData = monthlyRevenue.slice(monthlyRevenueStartIndex, monthlyRevenueEndIndex);
+
+  const totalAgeStatsPages = Math.ceil(monthlyAgeStats.length / ageStatsPerPage);
+  const ageStatsStartIndex = (ageStatsPage - 1) * ageStatsPerPage;
+  const ageStatsEndIndex = ageStatsStartIndex + ageStatsPerPage;
+  const currentAgeStatsData = monthlyAgeStats.slice(ageStatsStartIndex, ageStatsEndIndex);
 
   const handlePrevMonthlyPage = () => {
     if (monthlyPage > 1) setMonthlyPage(monthlyPage - 1);
@@ -690,15 +784,136 @@ export default function Financials() {
 
               {activeTab === 'age' && (
                 <div className="tab-panel">
-                  <h3>Age Demographics</h3>
-                  <p className="coming-soon">Patient age distribution and statistics coming soon...</p>
+                  <h3>Age Demographics by Month</h3>
+                  {loadingAgeStats ? (
+                    <div className="loading-state">
+                      <div className="spinner"></div>
+                      <p>Loading age statistics...</p>
+                    </div>
+                  ) : monthlyAgeStats.length === 0 ? (
+                    <p className="coming-soon">No age data available</p>
+                  ) : (
+                    <>
+                      <div className="age-stats-grid">
+                        {currentAgeStatsData.map((monthData) => (
+                          <div key={monthData.month} className="age-stats-month-card">
+                            <h4 className="month-title">{formatMonth(monthData.month)}</h4>
+                            <table className="age-stats-table">
+                              <thead>
+                                <tr>
+                                  <th>Age Range</th>
+                                  <th>Visits</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {monthData.ageBuckets.map((bucket) => (
+                                  <tr key={bucket.range}>
+                                    <td>{bucket.range}</td>
+                                    <td className="number-cell">{bucket.count}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="daily-pagination">
+                        <button
+                          className="pagination-btn"
+                          onClick={() => ageStatsPage > 1 && setAgeStatsPage(ageStatsPage - 1)}
+                          disabled={ageStatsPage === 1}
+                        >
+                          ← Previous
+                        </button>
+                        <div className="pagination-info">
+                          <span>Page {ageStatsPage} of {totalAgeStatsPages}</span>
+                          <span className="showing-text">
+                            Showing {ageStatsStartIndex + 1}-{Math.min(ageStatsEndIndex, monthlyAgeStats.length)} of {monthlyAgeStats.length} months
+                          </span>
+                        </div>
+                        <button
+                          className="pagination-btn"
+                          onClick={() => ageStatsPage < totalAgeStatsPages && setAgeStatsPage(ageStatsPage + 1)}
+                          disabled={ageStatsPage === totalAgeStatsPages}
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
               {activeTab === 'graphs' && (
                 <div className="tab-panel">
                   <h3>Visual Analytics</h3>
-                  <p className="coming-soon">Charts and graphs for revenue visualization coming soon...</p>
+                  {loadingMonthly ? (
+                    <div className="loading-state">
+                      <div className="spinner"></div>
+                      <p>Loading graphs...</p>
+                    </div>
+                  ) : monthlyBreakdown.length === 0 ? (
+                    <p className="coming-soon">No data available for graphs</p>
+                  ) : (
+                    <div className="graphs-container">
+                      {/* Total Revenue Bar Chart */}
+                      <div className="chart-card">
+                        <h4>Monthly Total Revenue</h4>
+                        <div className="bar-chart">
+                          {monthlyBreakdown.slice(0, 12).reverse().map((month) => {
+                            const maxRevenue = Math.max(...monthlyBreakdown.map(m => m.totalRevenue));
+                            const barHeight = (month.totalRevenue / maxRevenue) * 200;
+                            return (
+                              <div key={month.month} className="bar-wrapper">
+                                <div className="bar-value">{formatCurrency(month.totalRevenue)}</div>
+                                <div className="bar" style={{ height: `${barHeight}px`, backgroundColor: '#4CAF50' }}>
+                                </div>
+                                <div className="bar-label">{formatMonth(month.month).split(' ')[0]}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* New Patients Bar Chart */}
+                      <div className="chart-card">
+                        <h4>Monthly New Patients</h4>
+                        <div className="bar-chart">
+                          {monthlyBreakdown.slice(0, 12).reverse().map((month) => {
+                            const maxPatients = Math.max(...monthlyBreakdown.map(m => m.newPatients));
+                            const barHeight = maxPatients > 0 ? (month.newPatients / maxPatients) * 200 : 0;
+                            return (
+                              <div key={month.month} className="bar-wrapper">
+                                <div className="bar-value">{month.newPatients}</div>
+                                <div className="bar" style={{ height: `${barHeight}px`, backgroundColor: '#2196F3' }}>
+                                </div>
+                                <div className="bar-label">{formatMonth(month.month).split(' ')[0]}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Google Referrals Bar Chart */}
+                      <div className="chart-card">
+                        <h4>Monthly Google Referrals</h4>
+                        <div className="bar-chart">
+                          {monthlyBreakdown.slice(0, 12).reverse().map((month) => {
+                            const maxReferrals = Math.max(...monthlyBreakdown.map(m => m.googleReferrals));
+                            const barHeight = maxReferrals > 0 ? (month.googleReferrals / maxReferrals) * 200 : 0;
+                            return (
+                              <div key={month.month} className="bar-wrapper">
+                                <div className="bar-value">{month.googleReferrals}</div>
+                                <div className="bar" style={{ height: `${barHeight}px`, backgroundColor: '#FF9800' }}>
+                                </div>
+                                <div className="bar-label">{formatMonth(month.month).split(' ')[0]}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -42,6 +42,17 @@ export default function EditPrescriptionModal({
   const [loading, setLoading] = useState(false);
   const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
   
+  // Print-only multiselect fields
+  const [selectedFindings, setSelectedFindings] = useState<string[]>([]);
+  const [findingOptions, setFindingOptions] = useState<string[]>(['CUSTOM']);
+  const [customFindingMode, setCustomFindingMode] = useState(false);
+  const [customFindingInput, setCustomFindingInput] = useState('');
+  
+  const [selectedInstructions, setSelectedInstructions] = useState<string[]>([]);
+  const [instructionOptions, setInstructionOptions] = useState<string[]>(['CUSTOM']);
+  const [customInstructionMode, setCustomInstructionMode] = useState(false);
+  const [customInstructionInput, setCustomInstructionInput] = useState('');
+  
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
   const [timeOptions, setTimeOptions] = useState<string[]>(['After Meal (Morning)', 'After Meal (Evening)', 'Before Food', 'After Food', 'CUSTOM']);
@@ -128,6 +139,28 @@ export default function EditPrescriptionModal({
       if (durationsData && durationsData.length > 0) {
         const values = durationsData.map(d => d.duration_value);
         setDurationOptions([...values, 'CUSTOM']);
+      }
+
+      // Fetch findings
+      const { data: findingsData } = await supabase
+        .from('custom_findings')
+        .select('finding_value')
+        .order('finding_value', { ascending: true });
+      
+      if (findingsData && findingsData.length > 0) {
+        const values = findingsData.map(f => f.finding_value);
+        setFindingOptions([...values, 'CUSTOM']);
+      }
+
+      // Fetch instructions
+      const { data: instructionsData } = await supabase
+        .from('custom_instructions')
+        .select('instruction_value')
+        .order('instruction_value', { ascending: true });
+      
+      if (instructionsData && instructionsData.length > 0) {
+        const values = instructionsData.map(i => i.instruction_value);
+        setInstructionOptions([...values, 'CUSTOM']);
       }
     } catch (error) {
       console.error('Error fetching dropdown options:', error);
@@ -343,7 +376,80 @@ export default function EditPrescriptionModal({
           ) : (
             <>
               <div className="form-group">
-                <label>Findings and Symptoms</label>
+                <label>Findings and Symptoms (Multiselect for Print)</label>
+                {customFindingMode ? (
+                  <div>
+                    <textarea
+                      value={customFindingInput}
+                      onChange={(e) => setCustomFindingInput(e.target.value)}
+                      placeholder="Enter custom finding..."
+                      rows={2}
+                    />
+                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (customFindingInput.trim()) {
+                            setSelectedFindings([...selectedFindings, customFindingInput.trim()]);
+                            setCustomFindingInput('');
+                          }
+                          setCustomFindingMode(false);
+                        }}
+                        style={{ fontSize: '12px', flex: 1 }}
+                      >
+                        Add Custom Finding
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomFindingMode(false);
+                          setCustomFindingInput('');
+                        }}
+                        style={{ fontSize: '12px', flex: 1 }}
+                      >
+                        ← Back to dropdown
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <select
+                      multiple
+                      value={selectedFindings}
+                      onChange={(e) => {
+                        const options = Array.from(e.target.selectedOptions, option => option.value);
+                        if (options.includes('CUSTOM')) {
+                          setCustomFindingMode(true);
+                        } else {
+                          setSelectedFindings(options);
+                        }
+                      }}
+                      style={{ minHeight: '100px', width: '100%' }}
+                    >
+                      {findingOptions.map((finding) => (
+                        <option key={finding} value={finding}>
+                          {finding}
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ fontSize: '11px', color: '#666', marginTop: '3px' }}>
+                      Hold Ctrl (Windows) or Cmd (Mac) to select multiple. Selected: {selectedFindings.join('; ')}
+                    </div>
+                    {selectedFindings.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFindings([])}
+                        style={{ marginTop: '5px', fontSize: '12px' }}
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Findings and Symptoms (Saved to DB)</label>
                 <textarea
                   name="symptoms"
                   value={formData.symptoms}
@@ -351,6 +457,79 @@ export default function EditPrescriptionModal({
                   placeholder="Describe findings and symptoms..."
                   rows={4}
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Instructions (Multiselect for Print)</label>
+                {customInstructionMode ? (
+                  <div>
+                    <textarea
+                      value={customInstructionInput}
+                      onChange={(e) => setCustomInstructionInput(e.target.value)}
+                      placeholder="Enter custom instruction..."
+                      rows={2}
+                    />
+                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (customInstructionInput.trim()) {
+                            setSelectedInstructions([...selectedInstructions, customInstructionInput.trim()]);
+                            setCustomInstructionInput('');
+                          }
+                          setCustomInstructionMode(false);
+                        }}
+                        style={{ fontSize: '12px', flex: 1 }}
+                      >
+                        Add Custom Instruction
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomInstructionMode(false);
+                          setCustomInstructionInput('');
+                        }}
+                        style={{ fontSize: '12px', flex: 1 }}
+                      >
+                        ← Back to dropdown
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <select
+                      multiple
+                      value={selectedInstructions}
+                      onChange={(e) => {
+                        const options = Array.from(e.target.selectedOptions, option => option.value);
+                        if (options.includes('CUSTOM')) {
+                          setCustomInstructionMode(true);
+                        } else {
+                          setSelectedInstructions(options);
+                        }
+                      }}
+                      style={{ minHeight: '100px', width: '100%' }}
+                    >
+                      {instructionOptions.map((instruction) => (
+                        <option key={instruction} value={instruction}>
+                          {instruction}
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ fontSize: '11px', color: '#666', marginTop: '3px' }}>
+                      Hold Ctrl (Windows) or Cmd (Mac) to select multiple. Selected: {selectedInstructions.join('; ')}
+                    </div>
+                    {selectedInstructions.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInstructions([])}
+                        style={{ marginTop: '5px', fontSize: '12px' }}
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="form-group">

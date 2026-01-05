@@ -33,7 +33,12 @@ interface CustomInstruction {
   instruction_value: string;
 }
 
-type TabType = 'medicines' | 'quantities' | 'times' | 'frequencies' | 'durations' | 'instructions';
+interface CustomFinding {
+  id: number;
+  finding_value: string;
+}
+
+type TabType = 'medicines' | 'quantities' | 'times' | 'frequencies' | 'durations' | 'instructions' | 'findings';
 
 export default function DrugOrder() {
   const [activeTab, setActiveTab] = useState<TabType>('medicines');
@@ -62,6 +67,10 @@ export default function DrugOrder() {
   const [customInstructions, setCustomInstructions] = useState<CustomInstruction[]>([]);
   const [newInstruction, setNewInstruction] = useState('');
   
+  // Findings state
+  const [customFindings, setCustomFindings] = useState<CustomFinding[]>([]);
+  const [newFinding, setNewFinding] = useState('');
+  
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,6 +87,7 @@ export default function DrugOrder() {
     fetchCustomFrequencies();
     fetchCustomDurations();
     fetchCustomInstructions();
+    fetchCustomFindings();
   };
 
   // MEDICINES CRUD
@@ -615,6 +625,95 @@ export default function DrugOrder() {
     }
   };
 
+  // FINDINGS CRUD
+  const fetchCustomFindings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('custom_findings')
+        .select('*')
+        .order('finding_value', { ascending: true });
+
+      if (error) throw error;
+      setCustomFindings(data || []);
+    } catch (error: any) {
+      console.error('Error fetching findings:', error);
+    }
+  };
+
+  const addFinding = async () => {
+    if (!newFinding.trim()) {
+      alert('Please enter a finding value');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_findings')
+        .insert([{ finding_value: newFinding.trim() }]);
+
+      if (error) throw error;
+
+      await logActivity(`Added custom finding: ${newFinding.trim()}`);
+      setNewFinding('');
+      fetchCustomFindings();
+    } catch (error: any) {
+      console.error('Error adding finding:', error);
+      alert('Failed to add finding');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFinding = async (id: number) => {
+    if (!editingValue.trim()) {
+      alert('Finding value cannot be empty');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_findings')
+        .update({ finding_value: editingValue.trim() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(`Updated custom finding ID ${id}`);
+      setEditingId(null);
+      setEditingValue('');
+      fetchCustomFindings();
+    } catch (error: any) {
+      console.error('Error updating finding:', error);
+      alert('Failed to update finding');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteFinding = async (id: number, value: string) => {
+    if (!confirm(`Are you sure you want to delete "${value}"?`)) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_findings')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(`Deleted custom finding: ${value}`);
+      fetchCustomFindings();
+    } catch (error: any) {
+      console.error('Error deleting finding:', error);
+      alert('Failed to delete finding');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Generic handlers
   const getCurrentData = () => {
     switch (activeTab) {
@@ -630,6 +729,8 @@ export default function DrugOrder() {
         return customDurations.map(d => ({ id: d.id, value: d.duration_value }));
       case 'instructions':
         return customInstructions.map(i => ({ id: i.id, value: i.instruction_value }));
+      case 'findings':
+        return customFindings.map(f => ({ id: f.id, value: f.finding_value }));
       default:
         return [];
     }
@@ -643,6 +744,7 @@ export default function DrugOrder() {
       case 'frequencies': return 'Area/Site';
       case 'durations': return 'Duration';
       case 'instructions': return 'Instruction';
+      case 'findings': return 'Finding';
       default: return '';
     }
   };
@@ -655,6 +757,7 @@ export default function DrugOrder() {
       case 'frequencies': return newFrequency;
       case 'durations': return newDuration;
       case 'instructions': return newInstruction;
+      case 'findings': return newFinding;
       default: return '';
     }
   };
@@ -667,6 +770,7 @@ export default function DrugOrder() {
       case 'frequencies': setNewFrequency(value); break;
       case 'durations': setNewDuration(value); break;
       case 'instructions': setNewInstruction(value); break;
+      case 'findings': setNewFinding(value); break;
     }
   };
 
@@ -678,6 +782,7 @@ export default function DrugOrder() {
       case 'frequencies': addFrequency(); break;
       case 'durations': addDuration(); break;
       case 'instructions': addInstruction(); break;
+      case 'findings': addFinding(); break;
     }
   };
 
@@ -689,6 +794,7 @@ export default function DrugOrder() {
       case 'frequencies': updateFrequency(id); break;
       case 'durations': updateDuration(id); break;
       case 'instructions': updateInstruction(id); break;
+      case 'findings': updateFinding(id); break;
     }
   };
 
@@ -700,6 +806,7 @@ export default function DrugOrder() {
       case 'frequencies': deleteFrequency(id, value); break;
       case 'durations': deleteDuration(id, value); break;
       case 'instructions': deleteInstruction(id, value); break;
+      case 'findings': deleteFinding(id, value); break;
     }
   };
 
@@ -744,6 +851,12 @@ export default function DrugOrder() {
           onClick={() => setActiveTab('durations')}
         >
           Durations
+        </button>
+        <button 
+          className={`tab-button ${activeTab === 'findings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('findings')}
+        >
+          Findings
         </button>
         <button 
           className={`tab-button ${activeTab === 'instructions' ? 'active' : ''}`}
