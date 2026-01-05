@@ -43,15 +43,19 @@ export default function EditPrescriptionModal({
   const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
   
   // Print-only multiselect fields
-  const [selectedFindings, setSelectedFindings] = useState<string[]>([]);
-  const [findingOptions, setFindingOptions] = useState<string[]>(['CUSTOM']);
-  const [customFindingMode, setCustomFindingMode] = useState(false);
-  const [customFindingInput, setCustomFindingInput] = useState('');
+  const [selectedProcedures, setSelectedProcedures] = useState<string[]>([]);
+  const [procedureOptions, setProcedureOptions] = useState<string[]>(['CUSTOM']);
+  const [customProcedureMode, setCustomProcedureMode] = useState(false);
+  const [customProcedureInput, setCustomProcedureInput] = useState('');
   
-  const [selectedInstructions, setSelectedInstructions] = useState<string[]>([]);
+  // Instructions (print-only, single select)
+  const [instructions, setInstructions] = useState('');
   const [instructionOptions, setInstructionOptions] = useState<string[]>(['CUSTOM']);
   const [customInstructionMode, setCustomInstructionMode] = useState(false);
-  const [customInstructionInput, setCustomInstructionInput] = useState('');
+  
+  // Diagnosis dropdown (single select)
+  const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>(['CUSTOM']);
+  const [customDiagnosisMode, setCustomDiagnosisMode] = useState(false);
   
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
@@ -141,15 +145,15 @@ export default function EditPrescriptionModal({
         setDurationOptions([...values, 'CUSTOM']);
       }
 
-      // Fetch findings
-      const { data: findingsData } = await supabase
-        .from('custom_findings')
-        .select('finding_value')
-        .order('finding_value', { ascending: true });
+      // Fetch diagnosis options
+      const { data: diagnosisData } = await supabase
+        .from('custom_diagnosis')
+        .select('diagnosis_value')
+        .order('diagnosis_value', { ascending: true });
       
-      if (findingsData && findingsData.length > 0) {
-        const values = findingsData.map(f => f.finding_value);
-        setFindingOptions([...values, 'CUSTOM']);
+      if (diagnosisData && diagnosisData.length > 0) {
+        const values = diagnosisData.map(d => d.diagnosis_value);
+        setDiagnosisOptions([...values, 'CUSTOM']);
       }
 
       // Fetch instructions
@@ -161,6 +165,17 @@ export default function EditPrescriptionModal({
       if (instructionsData && instructionsData.length > 0) {
         const values = instructionsData.map(i => i.instruction_value);
         setInstructionOptions([...values, 'CUSTOM']);
+      }
+
+      // Fetch procedures
+      const { data: proceduresData } = await supabase
+        .from('custom_procedures')
+        .select('procedure_value')
+        .order('procedure_value', { ascending: true });
+      
+      if (proceduresData && proceduresData.length > 0) {
+        const values = proceduresData.map(p => p.procedure_value);
+        setProcedureOptions([...values, 'CUSTOM']);
       }
     } catch (error) {
       console.error('Error fetching dropdown options:', error);
@@ -210,7 +225,7 @@ export default function EditPrescriptionModal({
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -376,182 +391,135 @@ export default function EditPrescriptionModal({
           ) : (
             <>
               <div className="form-group">
-                <label>Findings and Symptoms (Multiselect for Print)</label>
-                {customFindingMode ? (
-                  <div>
-                    <textarea
-                      value={customFindingInput}
-                      onChange={(e) => setCustomFindingInput(e.target.value)}
-                      placeholder="Enter custom finding..."
-                      rows={2}
-                    />
-                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (customFindingInput.trim()) {
-                            setSelectedFindings([...selectedFindings, customFindingInput.trim()]);
-                            setCustomFindingInput('');
-                          }
-                          setCustomFindingMode(false);
-                        }}
-                        style={{ fontSize: '12px', flex: 1 }}
-                      >
-                        Add Custom Finding
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomFindingMode(false);
-                          setCustomFindingInput('');
-                        }}
-                        style={{ fontSize: '12px', flex: 1 }}
-                      >
-                        ← Back to dropdown
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <select
-                      multiple
-                      value={selectedFindings}
-                      onChange={(e) => {
-                        const options = Array.from(e.target.selectedOptions, option => option.value);
-                        if (options.includes('CUSTOM')) {
-                          setCustomFindingMode(true);
-                        } else {
-                          setSelectedFindings(options);
-                        }
-                      }}
-                      style={{ minHeight: '100px', width: '100%' }}
-                    >
-                      {findingOptions.map((finding) => (
-                        <option key={finding} value={finding}>
-                          {finding}
-                        </option>
-                      ))}
-                    </select>
-                    <div style={{ fontSize: '11px', color: '#666', marginTop: '3px' }}>
-                      Hold Ctrl (Windows) or Cmd (Mac) to select multiple. Selected: {selectedFindings.join('; ')}
-                    </div>
-                    {selectedFindings.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedFindings([])}
-                        style={{ marginTop: '5px', fontSize: '12px' }}
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label>Findings and Symptoms (Saved to DB)</label>
+                <label>Symptoms and Findings</label>
                 <textarea
                   name="symptoms"
                   value={formData.symptoms}
                   onChange={handleChange}
-                  placeholder="Describe findings and symptoms..."
+                  placeholder="Describe symptoms and findings..."
                   rows={4}
                 />
-              </div>
-
-              <div className="form-group">
-                <label>Instructions (Multiselect for Print)</label>
-                {customInstructionMode ? (
-                  <div>
-                    <textarea
-                      value={customInstructionInput}
-                      onChange={(e) => setCustomInstructionInput(e.target.value)}
-                      placeholder="Enter custom instruction..."
-                      rows={2}
-                    />
-                    <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (customInstructionInput.trim()) {
-                            setSelectedInstructions([...selectedInstructions, customInstructionInput.trim()]);
-                            setCustomInstructionInput('');
-                          }
-                          setCustomInstructionMode(false);
-                        }}
-                        style={{ fontSize: '12px', flex: 1 }}
-                      >
-                        Add Custom Instruction
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomInstructionMode(false);
-                          setCustomInstructionInput('');
-                        }}
-                        style={{ fontSize: '12px', flex: 1 }}
-                      >
-                        ← Back to dropdown
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <select
-                      multiple
-                      value={selectedInstructions}
-                      onChange={(e) => {
-                        const options = Array.from(e.target.selectedOptions, option => option.value);
-                        if (options.includes('CUSTOM')) {
-                          setCustomInstructionMode(true);
-                        } else {
-                          setSelectedInstructions(options);
-                        }
-                      }}
-                      style={{ minHeight: '100px', width: '100%' }}
-                    >
-                      {instructionOptions.map((instruction) => (
-                        <option key={instruction} value={instruction}>
-                          {instruction}
-                        </option>
-                      ))}
-                    </select>
-                    <div style={{ fontSize: '11px', color: '#666', marginTop: '3px' }}>
-                      Hold Ctrl (Windows) or Cmd (Mac) to select multiple. Selected: {selectedInstructions.join('; ')}
-                    </div>
-                    {selectedInstructions.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedInstructions([])}
-                        style={{ marginTop: '5px', fontSize: '12px' }}
-                      >
-                        Clear All
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
 
               <div className="form-group">
                 <label>Diagnosis</label>
-                <textarea
-                  name="diagnosis"
-                  value={formData.diagnosis}
-                  onChange={handleChange}
-                  placeholder="Enter diagnosis..."
-                  rows={4}
-                />
+                {customDiagnosisMode ? (
+                  <div>
+                    <textarea
+                      name="diagnosis"
+                      value={formData.diagnosis}
+                      onChange={handleChange}
+                      placeholder="Enter custom diagnosis..."
+                      rows={4}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomDiagnosisMode(false)}
+                      style={{ marginTop: '5px', fontSize: '12px' }}
+                    >
+                      ← Back to dropdown
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    name="diagnosis"
+                    value={formData.diagnosis}
+                    onChange={(e) => {
+                      if (e.target.value === 'CUSTOM') {
+                        setCustomDiagnosisMode(true);
+                      } else {
+                        handleChange(e);
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  >
+                    {diagnosisOptions.map((diag) => (
+                      <option key={diag} value={diag}>
+                        {diag}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="form-group">
                 <label>Procedures</label>
-                <textarea
-                  name="procedures"
-                  value={formData.procedures}
-                  onChange={handleChange}
-                  placeholder="Enter procedures performed..."
-                  rows={4}
-                />
+                {customProcedureMode ? (
+                  <div>
+                    <textarea
+                      name="procedures"
+                      value={formData.procedures}
+                      onChange={handleChange}
+                      placeholder="Enter custom procedure..."
+                      rows={4}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomProcedureMode(false)}
+                      style={{ marginTop: '5px', fontSize: '12px' }}
+                    >
+                      ← Back to dropdown
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    name="procedures"
+                    value={formData.procedures}
+                    onChange={(e) => {
+                      if (e.target.value === 'CUSTOM') {
+                        setCustomProcedureMode(true);
+                      } else {
+                        handleChange(e);
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  >
+                    {procedureOptions.map((proc) => (
+                      <option key={proc} value={proc}>
+                        {proc}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Instructions (Print Only)</label>
+                {customInstructionMode ? (
+                  <div>
+                    <textarea
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value)}
+                      placeholder="Enter custom instructions..."
+                      rows={4}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCustomInstructionMode(false)}
+                      style={{ marginTop: '5px', fontSize: '12px' }}
+                    >
+                      ← Back to dropdown
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    value={instructions}
+                    onChange={(e) => {
+                      if (e.target.value === 'CUSTOM') {
+                        setCustomInstructionMode(true);
+                      } else {
+                        setInstructions(e.target.value);
+                      }
+                    }}
+                    style={{ width: '100%' }}
+                  >
+                    {instructionOptions.map((inst) => (
+                      <option key={inst} value={inst}>
+                        {inst}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="medicines-section">
