@@ -35,7 +35,10 @@ interface Visit {
 interface PrescriptionMedicine {
   medicine_id: number;
   medicine_name: string;
-  frequency: string;
+  quantity?: string;
+  time?: string;
+  areasite?: string;
+  frequency?: string;
   duration: string;
 }
 
@@ -46,6 +49,8 @@ interface Prescription {
   findings: string;
   diagnosis: string;
   procedures: string;
+  review_date?: string;
+  instructions?: string;
   created_at: string;
   medicines: PrescriptionMedicine[];
 }
@@ -143,6 +148,51 @@ export default function PatientCard() {
         visitId: visitId,
       });
       setIsEditPrescriptionModalOpen(true);
+    }
+  };
+
+  const handleDeleteVisit = async (visitId: number) => {
+    if (!confirm('Are you sure you want to delete this visit? This will also delete the prescription if it exists.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // First delete prescription if exists
+      if (prescriptions[visitId]) {
+        // Delete prescription medicines first
+        const { error: medError } = await supabase
+          .from('prescription_medicines')
+          .delete()
+          .eq('prescription_id', prescriptions[visitId].prescription_id);
+
+        if (medError) throw medError;
+
+        // Delete prescription
+        const { error: prescError } = await supabase
+          .from('prescriptions')
+          .delete()
+          .eq('prescription_id', prescriptions[visitId].prescription_id);
+
+        if (prescError) throw prescError;
+      }
+
+      // Delete the visit
+      const { error: visitError } = await supabase
+        .from('visits')
+        .delete()
+        .eq('visit_id', visitId);
+
+      if (visitError) throw visitError;
+
+      alert('Visit deleted successfully');
+      fetchPatientData(); // Refresh the data
+    } catch (err: any) {
+      console.error('Error deleting visit:', err);
+      alert(`Failed to delete visit: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -522,15 +572,31 @@ export default function PatientCard() {
                               >
                                 ✏️
                               </button>
+                              <button
+                                onClick={() => handleDeleteVisit(visit.visit_id)}
+                                className="delete-visit-btn"
+                                title="Delete Visit"
+                              >
+                                🗑️
+                              </button>
                             </>
                           ) : (
-                            <Link 
-                              to={`/prescription?visit_id=${visit.visit_id}`}
-                              className="prescription-btn"
-                              title="Create Prescription"
-                            >
-                              📋
-                            </Link>
+                            <>
+                              <Link 
+                                to={`/prescription?visit_id=${visit.visit_id}`}
+                                className="prescription-btn"
+                                title="Create Prescription"
+                              >
+                                📋
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteVisit(visit.visit_id)}
+                                className="delete-visit-btn"
+                                title="Delete Visit"
+                              >
+                                🗑️
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -571,7 +637,7 @@ export default function PatientCard() {
                           </div>
 
                           <div className="prescription-section">
-                            <strong>Findings and Symptoms:</strong>
+                            <strong>History and Examinations:</strong>
                             <p className="prescription-text">{prescriptions[visit.visit_id].symptoms || 'N/A'}</p>
                           </div>
 
@@ -585,6 +651,13 @@ export default function PatientCard() {
                             <p className="prescription-text">{prescriptions[visit.visit_id].procedures || 'N/A'}</p>
                           </div>
 
+                          {prescriptions[visit.visit_id].review_date && (
+                            <div className="prescription-section">
+                              <strong>Review Date:</strong>
+                              <p className="prescription-text">{prescriptions[visit.visit_id].review_date}</p>
+                            </div>
+                          )}
+
                           {prescriptions[visit.visit_id].medicines && prescriptions[visit.visit_id].medicines.length > 0 && (
                             <div className="prescription-medicines">
                               <strong>Medicines Prescribed:</strong>
@@ -592,7 +665,9 @@ export default function PatientCard() {
                                 <thead>
                                   <tr>
                                     <th>Medicine Name</th>
-                                    <th>Frequency</th>
+                                    <th>Quantity</th>
+                                    <th>Time</th>
+                                    <th>Area/Site</th>
                                     <th>Duration</th>
                                   </tr>
                                 </thead>
@@ -600,7 +675,9 @@ export default function PatientCard() {
                                   {prescriptions[visit.visit_id].medicines.map((med) => (
                                     <tr key={med.medicine_id}>
                                       <td>{med.medicine_name}</td>
-                                      <td>{med.frequency}</td>
+                                      <td>{med.quantity || 'N/A'}</td>
+                                      <td>{med.time || 'N/A'}</td>
+                                      <td>{med.areasite || med.frequency || 'N/A'}</td>
                                       <td>{med.duration}</td>
                                     </tr>
                                   ))}

@@ -217,6 +217,11 @@ export default function EditPrescriptionModal({
         procedures: prescData.procedures || '',
         medicines: loadedMedicines,
       });
+      
+      // Set instructions from database if exists
+      if (prescData.instructions) {
+        setInstructions(prescData.instructions);
+      }
     } catch (err) {
       console.error('Error loading prescription:', err);
       alert('Failed to load prescription data');
@@ -391,12 +396,12 @@ export default function EditPrescriptionModal({
           ) : (
             <>
               <div className="form-group">
-                <label>Symptoms and Findings</label>
+                <label>History and Examinations</label>
                 <textarea
                   name="symptoms"
                   value={formData.symptoms}
                   onChange={handleChange}
-                  placeholder="Describe symptoms and findings..."
+                  placeholder="Describe history and examinations..."
                   rows={4}
                 />
               </div>

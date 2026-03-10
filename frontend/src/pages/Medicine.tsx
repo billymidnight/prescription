@@ -86,6 +86,30 @@ export default function Medicine() {
     setIsEditModalOpen(true);
   };
 
+  const handleDeleteClick = async (medicine: Medicine) => {
+    if (!confirm(`Are you sure you want to delete this medicine record for ${medicine.patient_name}?`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('medicines')
+        .delete()
+        .eq('med_id', medicine.med_id);
+
+      if (error) throw error;
+
+      alert('Medicine record deleted successfully');
+      fetchMedicines(); // Refresh the list
+    } catch (err: any) {
+      console.error('Error deleting medicine:', err);
+      alert(`Failed to delete medicine record: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const totalPages = Math.ceil(totalCount / medicinesPerPage);
 
   const handlePrevPage = () => {
@@ -249,6 +273,13 @@ export default function Medicine() {
                         title="Edit medicine record"
                       >
                         ✏️
+                      </button>
+                      <button 
+                        className="btn-delete-icon"
+                        onClick={() => handleDeleteClick(medicine)}
+                        title="Delete medicine record"
+                      >
+                        🗑️
                       </button>
                     </td>
                   </tr>

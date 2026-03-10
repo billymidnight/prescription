@@ -462,6 +462,7 @@ export default function Prescription() {
             findings: null,
             diagnosis: formData.diagnosis || null,
             procedures: formData.procedures || null,
+            instructions: instructions || null,
           })
           .eq('prescription_id', existingPrescriptionId);
 
@@ -484,6 +485,7 @@ export default function Prescription() {
             findings: null,
             diagnosis: formData.diagnosis || null,
             procedures: formData.procedures || null,
+            instructions: instructions || null,
           })
           .select()
           .single();
@@ -948,8 +950,8 @@ export default function Prescription() {
           </div>
 
           <div class="section">
-            <div class="section-title">Symptoms and Findings</div>
-            <div class="section-content">${formData.symptoms || 'No symptoms and findings recorded'}</div>
+            <div class="section-title">History and Examinations</div>
+            <div class="section-content">${formData.symptoms || 'No history and examinations recorded'}</div>
           </div>
 
           <div class="section">
@@ -1096,7 +1098,8 @@ export default function Prescription() {
                 <div><strong>Patient Name:</strong> {patient.name}</div>
                 <div><strong>Hometown:</strong> {patient.hometown || 'N/A'}</div>
                 <div><strong>Phone No:</strong> {patient.phone_no}</div>
-                <div><strong>Sex:</strong> {patient.sex === 'M' ? 'Male' : 'Female'}</div>
+                <div><strong>Sex:</strong> {patient.sex === 'M' ? 'Male' : patient.sex === 'F' ? 'Female' : 'Other'}</div>
+                <div><strong>Age:</strong> {formData.age || 'N/A'}</div>
                 <div><strong>Weight:</strong> {visit.weight || 'N/A'}</div>
                 <div><strong>BP:</strong> {visit.blood_pressure || 'N/A'}</div>
                 <div><strong>Pulse:</strong> {visit.pulse || 'N/A'}</div>
@@ -1109,12 +1112,12 @@ export default function Prescription() {
           <h2 className="section-heading">Medical Details</h2>
           
           <div className="form-group">
-            <label>Symptoms and Findings</label>
+            <label>History and Examinations</label>
             <textarea
               name="symptoms"
               value={formData.symptoms}
               onChange={handleChange}
-              placeholder="Describe symptoms and findings..."
+              placeholder="Describe history and examinations..."
               rows={4}
             />
           </div>
@@ -1251,9 +1254,10 @@ export default function Prescription() {
               <p>No medicines added yet. Click "+ Add Medicine" to prescribe medication.</p>
             </div>
           ) : (
-            <div className="medicines-list">
-              {formData.medicines.map((medicine, index) => (
-                <div key={medicine.id} className="medicine-item">
+            <>
+              <div className="medicines-list">
+                {formData.medicines.map((medicine, index) => (
+                  <div key={medicine.id} className="medicine-item">
                   <div className="medicine-header-row">
                     <h3 className="medicine-number">Medicine #{index + 1}</h3>
                     <button
@@ -1502,6 +1506,15 @@ export default function Prescription() {
                 </div>
               ))}
             </div>
+            <button 
+              type="button" 
+              className="btn-add-medicine-bottom" 
+              onClick={addMedicine}
+              title="Add another medicine"
+            >
+              + Add Medicine
+            </button>
+            </>
           )}
         </div>
       </div>

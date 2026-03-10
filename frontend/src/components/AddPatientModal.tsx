@@ -191,6 +191,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
               <select name="sex" value={formData.sex} onChange={handleChange} required>
                 <option value="M">Male</option>
                 <option value="F">Female</option>
+                <option value="O">Other</option>
               </select>
             </div>
 

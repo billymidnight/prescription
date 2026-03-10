@@ -133,6 +133,21 @@
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
+.btn-delete-icon {
+  padding: 0.5rem 0.75rem;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border-radius: 8px;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.btn-delete-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
 @media (max-width: 768px) {
   .table-container {
     overflow-x: auto;

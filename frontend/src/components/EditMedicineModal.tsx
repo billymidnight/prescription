@@ -163,8 +163,10 @@ export default function EditMedicineModal({ isOpen, onClose, onMedicineUpdated, 
             <select name="payment_method" value={formData.payment_method} onChange={handleChange} required>
               <option value="Cash">Cash</option>
               <option value="Card">Card</option>
-              <option value="UPI">UPI</option>
-              <option value="Online">Online</option>
+              <option value="GPay">GPay</option>
+              <option value="Cash+Card">Cash+Card</option>
+              <option value="Cash+GPay">Cash+GPay</option>
+              <option value="Card+GPay">Card+GPay</option>
             </select>
           </div>
 

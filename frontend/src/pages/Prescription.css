@@ -271,6 +271,29 @@
   box-shadow: 0 4px 16px var(--shadow);
 }
 
+.btn-add-medicine-bottom {
+  padding: 0.75rem 1.5rem;
+  background: #4CAF50;
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 1rem;
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.btn-add-medicine-bottom:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
 .no-medicines {
   text-align: center;
   padding: 3rem 2rem;
