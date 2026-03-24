@@ -591,3 +591,120 @@
     min-width: 50px;
   }
 }
+
+/* Ticker Tape Carousel */
+.ticker-tape-wrapper {
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.ticker-tape {
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+}
+
+.ticker-tape::before,
+.ticker-tape::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ticker-tape::before {
+  left: 0;
+  background: linear-gradient(to right, #1a1a2e, transparent);
+}
+
+.ticker-tape::after {
+  right: 0;
+  background: linear-gradient(to left, #0f3460, transparent);
+}
+
+.ticker-tape-track {
+  display: flex;
+  animation: ticker-scroll 30s linear infinite;
+  width: max-content;
+}
+
+.ticker-tape-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.ticker-item.consultation {
+  color: #a8edea;
+}
+
+.ticker-item.drug {
+  color: #fed6e3;
+}
+
+.ticker-type-badge {
+  font-size: 1.1rem;
+}
+
+.ticker-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+.ticker-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #48bb78;
+  font-family: 'Courier New', monospace;
+}
+
+.ticker-payment {
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .ticker-tape-track {
+    animation-duration: 20s;
+  }
+
+  .ticker-item {
+    padding: 10px 16px;
+    gap: 6px;
+  }
+
+  .ticker-name {
+    font-size: 0.8rem;
+  }
+
+  .ticker-amount {
+    font-size: 0.85rem;
+  }
+}

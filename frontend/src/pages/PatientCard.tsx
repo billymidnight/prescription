@@ -14,6 +14,7 @@ interface Patient {
   sex: string;
   phone_no: string;
   year_of_birth: number;
+  dob: string | null;
   pic_filename: string | null;
   hometown: string;
 }
@@ -310,8 +311,29 @@ export default function PatientCard() {
     }
   };
 
-  const calculateAge = (yearOfBirth: number) => {
+  const calculateAge = (yearOfBirth: number, dob?: string | null) => {
+    if (dob) {
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    }
     return new Date().getFullYear() - yearOfBirth;
+  };
+
+  const formatDob = (dob: string) => {
+    const date = new Date(dob);
+    const day = date.getDate();
+    const suffix = (day === 1 || day === 21 || day === 31) ? 'st' :
+                   (day === 2 || day === 22) ? 'nd' :
+                   (day === 3 || day === 23) ? 'rd' : 'th';
+    const month = date.toLocaleDateString('en-IN', { month: 'long' });
+    const year = date.getFullYear();
+    return `${day}${suffix} ${month} ${year}`;
   };
 
   const formatCurrency = (amount: number) => {
@@ -461,7 +483,7 @@ export default function PatientCard() {
                 <strong>ID:</strong> {patient.patient_id}
               </span>
               <span className="meta-item">
-                <strong>Age:</strong> {calculateAge(patient.year_of_birth)} years
+                <strong>Age:</strong> {calculateAge(patient.year_of_birth, patient.dob)} years
               </span>
               <span className="meta-item">
                 <strong>Gender:</strong> {patient.sex === 'M' ? 'Male' : 'Female'}
@@ -483,8 +505,8 @@ export default function PatientCard() {
               <span className="detail-value">{patient.hometown || 'N/A'}</span>
             </div>
             <div className="detail-item">
-              <span className="detail-label">Year of Birth</span>
-              <span className="detail-value">{patient.year_of_birth}</span>
+              <span className="detail-label">{patient.dob ? 'Date of Birth' : 'Year of Birth'}</span>
+              <span className="detail-value">{patient.dob ? formatDob(patient.dob) : patient.year_of_birth}</span>
             </div>
           </div>
         </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CLINIC_MEDICINES } from '../data/medicines';
 import supabase from '../lib/supabaseClient';
 import { logActivity } from '../lib/activityLog';
 import './Prescription.css';
@@ -55,7 +54,7 @@ interface PrescriptionData {
 
 export default function Prescription() {
   const [searchParams] = useSearchParams();
-  const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
+  const [allMedicines, setAllMedicines] = useState<string[]>([]);
   
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
@@ -94,6 +93,9 @@ export default function Prescription() {
   const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>(['CUSTOM']);
   const [customDiagnosisMode, setCustomDiagnosisMode] = useState(false);
 
+  // Review Date
+  const [reviewDate, setReviewDate] = useState('');
+
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
   const [customMedicineMode, setCustomMedicineMode] = useState<Record<string, boolean>>({});
@@ -117,7 +119,7 @@ export default function Prescription() {
     }
   }, [searchParams, searchParams.get('visit_id')]);
 
-  // Fetch custom medicines from DB and merge with hardcoded ones
+  // Fetch medicines from DB (custom_medicines table managed via Drug Order page)
   useEffect(() => {
     const fetchCustomMedicines = async () => {
       try {
@@ -133,9 +135,7 @@ export default function Prescription() {
 
         if (data && data.length > 0) {
           const customNames = data.map(m => m.medicine_name);
-          // Merge hardcoded with custom, remove duplicates, and sort
-          const merged = [...new Set([...CLINIC_MEDICINES, ...customNames])].sort();
-          setAllMedicines(merged);
+          setAllMedicines(customNames);
         }
       } catch (error) {
         console.error('Error in fetchCustomMedicines:', error);
@@ -202,7 +202,6 @@ export default function Prescription() {
         if (diagnosisData && diagnosisData.length > 0) {
           const values = diagnosisData.map(d => d.diagnosis_value);
           setDiagnosisOptions([...values, 'CUSTOM']);
-          // Set default value if empty
           if (!formData.diagnosis) {
             setFormData(prev => ({ ...prev, diagnosis: values[0] }));
           }
@@ -375,6 +374,15 @@ export default function Prescription() {
             procedures: prescData?.procedures || '',
             medicines: loadedMedicines,
           });
+
+          // Load instructions and review_date from existing prescription
+          if (prescData?.instructions) {
+            setInstructions(prescData.instructions);
+          }
+          if (prescData?.review_date) {
+            setReviewDate(prescData.review_date);
+          }
+
         } else {
           console.error('❌ [fetchVisit] No patient data found for visit');
           setPatient(null);
@@ -463,6 +471,7 @@ export default function Prescription() {
             diagnosis: formData.diagnosis || null,
             procedures: formData.procedures || null,
             instructions: instructions || null,
+            review_date: reviewDate || null,
           })
           .eq('prescription_id', existingPrescriptionId);
 
@@ -486,6 +495,7 @@ export default function Prescription() {
             diagnosis: formData.diagnosis || null,
             procedures: formData.procedures || null,
             instructions: instructions || null,
+            review_date: reviewDate || null,
           })
           .select()
           .single();
@@ -852,10 +862,12 @@ export default function Prescription() {
           }
           
           .phone {
-            font-size: 12px;
+            font-size: 16px;
             color: #333;
             font-weight: 700;
-            letter-spacing: 0.1px;
+            letter-spacing: 0.3px;
+            margin-top: 3px;
+            margin-bottom: 3px;
           }
           
           .consultation-times {
@@ -1005,6 +1017,13 @@ export default function Prescription() {
           </div>
           ` : ''}
 
+          ${reviewDate ? `
+          <div class="section">
+            <div class="section-title">Review Date</div>
+            <div class="section-content">${new Date(reviewDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+          </div>
+          ` : ''}
+
           <div class="signature-section">
             <div class="signature-box">
               <div class="signature-line"></div>
@@ -1127,9 +1146,9 @@ export default function Prescription() {
             {customDiagnosisMode ? (
               <div>
                 <textarea
+                  name="diagnosis"
                   value={formData.diagnosis}
                   onChange={handleChange}
-                  name="diagnosis"
                   placeholder="Enter custom diagnosis..."
                   rows={4}
                 />
@@ -1238,6 +1257,16 @@ export default function Prescription() {
                 ))}
               </select>
             )}
+          </div>
+
+          <div className="form-group">
+            <label>Review Date</label>
+            <input
+              type="date"
+              value={reviewDate}
+              onChange={(e) => setReviewDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+            />
           </div>
         </div>
 

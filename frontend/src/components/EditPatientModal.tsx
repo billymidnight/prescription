@@ -9,6 +9,7 @@ interface Patient {
   sex: string;
   phone_no: string;
   year_of_birth: number;
+  dob: string | null;
   hometown: string | null;
   pic_filename: string | null;
 }
@@ -26,6 +27,7 @@ export default function EditPatientModal({ isOpen, onClose, onPatientUpdated, pa
     sex: patient.sex,
     phone_no: patient.phone_no,
     year_of_birth: patient.year_of_birth.toString(),
+    dob: patient.dob || '',
     hometown: patient.hometown || '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -38,6 +40,7 @@ export default function EditPatientModal({ isOpen, onClose, onPatientUpdated, pa
       sex: patient.sex,
       phone_no: patient.phone_no,
       year_of_birth: patient.year_of_birth.toString(),
+      dob: patient.dob || '',
       hometown: patient.hometown || '',
     });
   }, [patient]);
@@ -120,16 +123,21 @@ export default function EditPatientModal({ isOpen, onClose, onPatientUpdated, pa
       }
 
       // Update in Supabase
+      const updateData: any = {
+        name: formData.name.trim(),
+        sex: formData.sex,
+        phone_no: formData.phone_no.trim(),
+        year_of_birth: formData.dob ? new Date(formData.dob).getFullYear() : parseInt(formData.year_of_birth),
+        hometown: formData.hometown.trim() || null,
+        pic_filename: picFilename,
+      };
+      if (formData.dob) {
+        updateData.dob = formData.dob;
+      }
+
       const { error: updateError } = await supabase
         .from('patients')
-        .update({
-          name: formData.name.trim(),
-          sex: formData.sex,
-          phone_no: formData.phone_no.trim(),
-          year_of_birth: parseInt(formData.year_of_birth),
-          hometown: formData.hometown.trim() || null,
-          pic_filename: picFilename,
-        })
+        .update(updateData)
         .eq('patient_id', patient.patient_id);
 
       if (updateError) throw updateError;
@@ -192,6 +200,17 @@ export default function EditPatientModal({ isOpen, onClose, onPatientUpdated, pa
                 <option value="M">Male</option>
                 <option value="F">Female</option>
               </select>
+            </div>
+
+            <div className="form-group">
+              <label>Date of Birth</label>
+              <input
+                type="date"
+                name="dob"
+                value={formData.dob}
+                onChange={handleChange}
+                max={new Date().toISOString().split('T')[0]}
+              />
             </div>
 
             <div className="form-group">

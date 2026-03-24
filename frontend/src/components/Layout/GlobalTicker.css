@@ -1,0 +1,109 @@
+.global-ticker-wrapper {
+  position: fixed;
+  top: var(--top-nav-height);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.global-ticker {
+  overflow: hidden;
+  position: relative;
+}
+
+.global-ticker::before,
+.global-ticker::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.global-ticker::before {
+  left: 0;
+  background: linear-gradient(to right, #1a1a2e, transparent);
+}
+
+.global-ticker::after {
+  right: 0;
+  background: linear-gradient(to left, #0f3460, transparent);
+}
+
+.global-ticker-track {
+  display: flex;
+  animation: global-ticker-scroll 30s linear infinite;
+  width: max-content;
+}
+
+.global-ticker-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes global-ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.global-ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.global-ticker-item.consultation {
+  color: #a8edea;
+}
+
+.global-ticker-item.drug {
+  color: #fed6e3;
+}
+
+.global-ticker-badge {
+  font-size: 1rem;
+}
+
+.global-ticker-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+}
+
+.global-ticker-amount {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #48bb78;
+  font-family: 'Courier New', monospace;
+}
+
+.global-ticker-payment {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .global-ticker-track {
+    animation-duration: 20s;
+  }
+
+  .global-ticker-item {
+    padding: 8px 16px;
+    gap: 6px;
+  }
+
+  .global-ticker-name {
+    font-size: 0.75rem;
+  }
+
+  .global-ticker-amount {
+    font-size: 0.8rem;
+  }
+}

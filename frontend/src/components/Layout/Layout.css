@@ -8,7 +8,7 @@
 .layout-container {
   display: flex;
   flex: 1;
-  margin-top: var(--top-nav-height);
+  margin-top: calc(var(--top-nav-height) + 40px);
 }
 
 .main-content {

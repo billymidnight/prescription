@@ -10,6 +10,7 @@ interface Patient {
   sex: string;
   phone_no: string;
   year_of_birth: number;
+  dob: string | null;
   pic_filename: string | null;
   hometown: string;
 }

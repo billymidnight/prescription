@@ -247,6 +247,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
                 <option value="GPay">GPay</option>
                 <option value="Cash+Card">Cash+Card</option>
                 <option value="Cash+GPay">Cash+GPay</option>
+                <option value="Card+GPay">Card+GPay</option>
               </select>
             </div>
 

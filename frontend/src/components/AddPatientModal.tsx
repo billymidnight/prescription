@@ -14,7 +14,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
     name: '',
     sex: 'M',
     phone_no: '',
-    year_of_birth: '',
+    dob: '',
     hometown: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -45,16 +45,19 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
       return false;
     }
 
-    const yearOfBirth = parseInt(formData.year_of_birth);
-    const currentYear = new Date().getFullYear();
-    
-    if (!formData.year_of_birth || isNaN(yearOfBirth)) {
-      setError('Valid year of birth is required');
+    if (!formData.dob) {
+      setError('Date of birth is required');
       return false;
     }
 
-    if (yearOfBirth < 1920 || yearOfBirth > currentYear) {
-      setError(`Year of birth must be between 1920 and ${currentYear}`);
+    const dobDate = new Date(formData.dob);
+    const now = new Date();
+    if (dobDate > now) {
+      setError('Date of birth cannot be in the future');
+      return false;
+    }
+    if (dobDate.getFullYear() < 1920) {
+      setError('Date of birth year must be 1920 or later');
       return false;
     }
 
@@ -128,7 +131,8 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
             name: formData.name.trim(),
             sex: formData.sex,
             phone_no: formData.phone_no.trim(),
-            year_of_birth: parseInt(formData.year_of_birth),
+            year_of_birth: new Date(formData.dob).getFullYear(),
+            dob: formData.dob,
             hometown: formData.hometown.trim() || null,
             pic_filename: picFilename,
           },
@@ -144,7 +148,7 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
         name: '',
         sex: 'M',
         phone_no: '',
-        year_of_birth: '',
+        dob: '',
         hometown: '',
       });
       setImageFile(null);
@@ -196,15 +200,13 @@ export default function AddPatientModal({ isOpen, onClose, onPatientAdded }: Add
             </div>
 
             <div className="form-group">
-              <label>Year of Birth *</label>
+              <label>Date of Birth *</label>
               <input
-                type="number"
-                name="year_of_birth"
-                value={formData.year_of_birth}
+                type="date"
+                name="dob"
+                value={formData.dob}
                 onChange={handleChange}
-                placeholder="e.g., 1990"
-                min="1920"
-                max={new Date().getFullYear()}
+                max={new Date().toISOString().split('T')[0]}
                 required
               />
             </div>

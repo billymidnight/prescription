@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import supabase from '../lib/supabaseClient';
-import { CLINIC_MEDICINES } from '../data/medicines';
 import { logActivity } from '../lib/activityLog';
 import './EditPrescriptionModal.css';
 
@@ -40,7 +39,7 @@ export default function EditPrescriptionModal({
     medicines: [] as Medicine[],
   });
   const [loading, setLoading] = useState(false);
-  const [allMedicines, setAllMedicines] = useState<string[]>(CLINIC_MEDICINES);
+  const [allMedicines, setAllMedicines] = useState<string[]>([]);
   
   // Print-only multiselect fields
   const [selectedProcedures, setSelectedProcedures] = useState<string[]>([]);
@@ -56,6 +55,9 @@ export default function EditPrescriptionModal({
   // Diagnosis dropdown (single select)
   const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>(['CUSTOM']);
   const [customDiagnosisMode, setCustomDiagnosisMode] = useState(false);
+
+  // Review Date
+  const [reviewDate, setReviewDate] = useState('');
   
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
@@ -92,8 +94,7 @@ export default function EditPrescriptionModal({
       if (error) throw error;
 
       const customMeds = data?.map((m: any) => m.medicine_name) || [];
-      const merged = [...CLINIC_MEDICINES, ...customMeds].sort();
-      setAllMedicines(merged);
+      setAllMedicines(customMeds.sort());
     } catch (error) {
       console.error('Error fetching custom medicines:', error);
     }
@@ -222,6 +223,9 @@ export default function EditPrescriptionModal({
       if (prescData.instructions) {
         setInstructions(prescData.instructions);
       }
+      if (prescData.review_date) {
+        setReviewDate(prescData.review_date);
+      }
     } catch (err) {
       console.error('Error loading prescription:', err);
       alert('Failed to load prescription data');
@@ -333,6 +337,8 @@ export default function EditPrescriptionModal({
           findings: null,
           diagnosis: formData.diagnosis || null,
           procedures: formData.procedures || null,
+          instructions: instructions || null,
+          review_date: reviewDate || null,
         })
         .eq('prescription_id', prescriptionId);
 
@@ -525,6 +531,16 @@ export default function EditPrescriptionModal({
                     ))}
                   </select>
                 )}
+              </div>
+
+              <div className="form-group">
+                <label>Review Date</label>
+                <input
+                  type="date"
+                  value={reviewDate}
+                  onChange={(e) => setReviewDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
               </div>
 
               <div className="medicines-section">
