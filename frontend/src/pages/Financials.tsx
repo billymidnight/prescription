@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import supabase from '../lib/supabaseClient';
+import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
+import FinancialsChatbot from '../components/FinancialsChatbot';
 import './Financials.css';
 
 interface TickerItem {
@@ -7,6 +8,7 @@ interface TickerItem {
   amount: number;
   paymentEmoji: string;
   type: 'consultation' | 'drug';
+  imageUrl: string | null;
 }
 
 const getPaymentEmoji = (method: string | null): string => {
@@ -113,15 +115,30 @@ export default function Financials() {
     try {
       const { data: visitData } = await supabase
         .from('visits')
-        .select('fullname, consultation_fee, drug_fee, Procedure_Fee, paymentmethod')
+        .select('fullname, patient_id, consultation_fee, drug_fee, Procedure_Fee, paymentmethod')
         .order('visit_id', { ascending: false })
         .limit(5);
 
       const { data: medData } = await supabase
         .from('medicines')
-        .select('patient_name, drug_fee, payment_method')
+        .select('patient_name, patient_id, drug_fee, payment_method')
         .order('med_id', { ascending: false })
         .limit(5);
+
+      // Collect all patient_ids to fetch their pics
+      const patientIds = new Set<number>();
+      (visitData || []).forEach(v => { if (v.patient_id) patientIds.add(v.patient_id); });
+      (medData || []).forEach(m => { if (m.patient_id) patientIds.add(m.patient_id); });
+
+      // Fetch pic_filename for all relevant patients
+      const picMap = new Map<number, string | null>();
+      if (patientIds.size > 0) {
+        const { data: patientsData } = await supabase
+          .from('patients')
+          .select('patient_id, pic_filename')
+          .in('patient_id', Array.from(patientIds));
+        (patientsData || []).forEach(p => picMap.set(p.patient_id, p.pic_filename));
+      }
 
       const items: TickerItem[] = [];
 
@@ -132,6 +149,7 @@ export default function Financials() {
           amount: total,
           paymentEmoji: getPaymentEmoji(v.paymentmethod),
           type: 'consultation',
+          imageUrl: getPatientImageUrl(picMap.get(v.patient_id) || null),
         });
       });
 
@@ -141,6 +159,7 @@ export default function Financials() {
           amount: m.drug_fee || 0,
           paymentEmoji: getPaymentEmoji(m.payment_method),
           type: 'drug',
+          imageUrl: getPatientImageUrl(picMap.get(m.patient_id) || null),
         });
       });
 
@@ -525,6 +544,7 @@ export default function Financials() {
   };
 
   return (
+    <>
     <div className="financials-page">
       {tickerItems.length > 0 && (
         <div className="ticker-tape-wrapper">
@@ -533,7 +553,22 @@ export default function Financials() {
               {[...tickerItems, ...tickerItems].map((item, idx) => (
                 <div key={idx} className={`ticker-item ${item.type}`}>
                   <span className="ticker-type-badge">{item.type === 'consultation' ? '🩺' : '💊'}</span>
-                  <span className="ticker-name">{item.name}</span>
+                  <div className="ticker-avatar">
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="ticker-avatar-img"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          (e.currentTarget.nextElementSibling as HTMLElement)?.style.setProperty('display', 'flex');
+                        }}
+                      />
+                    ) : null}
+                    <span className="ticker-avatar-fallback" style={item.imageUrl ? { display: 'none' } : undefined}>
+                      {item.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                   <span className="ticker-amount">₹{item.amount.toLocaleString('en-IN')}</span>
                   <span className="ticker-payment">{item.paymentEmoji}</span>
                 </div>
@@ -1001,5 +1036,7 @@ export default function Financials() {
         </>
       )}
     </div>
+    <FinancialsChatbot />
+    </>
   );
 }

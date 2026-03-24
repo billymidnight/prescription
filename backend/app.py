@@ -36,8 +36,10 @@ def create_app():
     # Register API blueprints
     from api.routes import api_bp
     from api.patient_routes import patient_bp
+    from api.chatbot_routes import chatbot_bp
     app.register_blueprint(api_bp)
     app.register_blueprint(patient_bp, url_prefix='/api/patients')
+    app.register_blueprint(chatbot_bp)
 
     # Static images endpoint
     @app.route('/static_images/<path:filename>')
