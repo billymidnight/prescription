@@ -6,6 +6,11 @@ interface ChatMessage {
   content: string;
 }
 
+const SCORP_LOGO = (() => {
+  const api = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+  return api.replace(/\/api\/?$/, '') + '/static_images/scorp_logo.png';
+})();
+
 export default function FinancialsChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -105,14 +110,14 @@ export default function FinancialsChatbot() {
         onClick={() => setIsOpen(!isOpen)}
         title="Scorp — Clinic Data Assistant"
       >
-        {isOpen ? '✕' : '🐶'}
+        {isOpen ? '✕' : <img src={SCORP_LOGO} alt="Scorp" className="chatbot-fab-logo" />}
       </button>
 
       {isOpen && (
         <div className="chatbot-window">
           <div className="chatbot-header">
             <div className="chatbot-header-info">
-              <span className="chatbot-header-icon">🐶</span>
+              <img src={SCORP_LOGO} alt="Scorp" className="chatbot-header-logo" />
               <div>
                 <div className="chatbot-header-title">Scorp</div>
                 <div className="chatbot-header-subtitle">Dr. Karthika Skin Care · Data Assistant</div>
@@ -127,7 +132,7 @@ export default function FinancialsChatbot() {
           <div className="chatbot-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`chatbot-msg ${msg.role}`}>
-                {msg.role === 'assistant' && <span className="chatbot-msg-avatar">🐶</span>}
+                {msg.role === 'assistant' && <img src={SCORP_LOGO} alt="Scorp" className="chatbot-msg-avatar-img" />}
                 <div
                   className="chatbot-msg-bubble"
                   dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
@@ -136,7 +141,7 @@ export default function FinancialsChatbot() {
             ))}
             {loading && (
               <div className="chatbot-msg assistant">
-                <span className="chatbot-msg-avatar">🐶</span>
+                <img src={SCORP_LOGO} alt="Scorp" className="chatbot-msg-avatar-img" />
                 <div className="chatbot-msg-bubble chatbot-typing">
                   <span className="dot"></span>
                   <span className="dot"></span>
