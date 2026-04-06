@@ -1042,7 +1042,7 @@ export default function Prescription() {
             </p>
             <div class="contact-info">
               <p class="address">
-                #1113 to 1116, MTP Road, Opp. Central Theatre, Coimbatore – 641002
+                #1116 to , MTP Road, Opp. Central Theatre, Coimbatore – 641002
               </p>
               <p class="phone">
                 📞 +91 95855 33120 &nbsp;&nbsp;|&nbsp;&nbsp; +91 90878 78922
