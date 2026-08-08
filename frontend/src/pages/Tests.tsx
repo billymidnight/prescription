@@ -25,6 +25,7 @@ interface Visit {
   weight: string;
   blood_pressure: string;
   pulse: string;
+  rbs: string;
 }
 
 export default function Tests() {
@@ -349,6 +350,7 @@ export default function Tests() {
                               <span><strong>Weight:</strong> {visit.weight || 'Not recorded'}</span>
                               <span><strong>Blood Pressure:</strong> {visit.blood_pressure || 'Not recorded'}</span>
                               <span><strong>Pulse:</strong> {visit.pulse || 'Not recorded'}</span>
+                              <span><strong>RBS:</strong> {visit.rbs || 'Not recorded'}</span>
                             </div>
                           </div>
                           {visit.extra_procedures && (

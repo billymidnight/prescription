@@ -43,7 +43,12 @@ interface CustomProcedure {
   procedure_value: string;
 }
 
-type TabType = 'medicines' | 'quantities' | 'times' | 'frequencies' | 'durations' | 'diagnosis' | 'instructions' | 'procedures';
+interface CustomInvestigation {
+  id: number;
+  investigation_value: string;
+}
+
+type TabType = 'medicines' | 'quantities' | 'times' | 'frequencies' | 'durations' | 'diagnosis' | 'instructions' | 'procedures' | 'investigations';
 
 export default function DrugOrder() {
   const [activeTab, setActiveTab] = useState<TabType>('medicines');
@@ -79,7 +84,11 @@ export default function DrugOrder() {
   // Procedures state
   const [customProcedures, setCustomProcedures] = useState<CustomProcedure[]>([]);
   const [newProcedure, setNewProcedure] = useState('');
-  
+
+  // Investigations state
+  const [customInvestigations, setCustomInvestigations] = useState<CustomInvestigation[]>([]);
+  const [newInvestigation, setNewInvestigation] = useState('');
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -98,6 +107,7 @@ export default function DrugOrder() {
     fetchCustomDiagnosis();
     fetchCustomInstructions();
     fetchCustomProcedures();
+    fetchCustomInvestigations();
   };
 
   // MEDICINES CRUD
@@ -813,6 +823,95 @@ export default function DrugOrder() {
     }
   };
 
+  // Investigations CRUD functions
+  const fetchCustomInvestigations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('custom_investigations')
+        .select('*')
+        .order('investigation_value', { ascending: true });
+
+      if (error) throw error;
+      setCustomInvestigations(data || []);
+    } catch (error: any) {
+      console.error('Error fetching investigations:', error);
+    }
+  };
+
+  const addInvestigation = async () => {
+    if (!newInvestigation.trim()) {
+      alert('Please enter an investigation value');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_investigations')
+        .insert([{ investigation_value: newInvestigation.trim() }]);
+
+      if (error) throw error;
+
+      await logActivity(`Added custom investigation: ${newInvestigation.trim()}`);
+      setNewInvestigation('');
+      fetchCustomInvestigations();
+    } catch (error: any) {
+      console.error('Error adding investigation:', error);
+      alert('Failed to add investigation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateInvestigation = async (id: number) => {
+    if (!editingValue.trim()) {
+      alert('Investigation value cannot be empty');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_investigations')
+        .update({ investigation_value: editingValue.trim() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(`Updated custom investigation ID ${id}`);
+      setEditingId(null);
+      setEditingValue('');
+      fetchCustomInvestigations();
+    } catch (error: any) {
+      console.error('Error updating investigation:', error);
+      alert('Failed to update investigation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteInvestigation = async (id: number, value: string) => {
+    if (!confirm(`Are you sure you want to delete "${value}"?`)) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('custom_investigations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await logActivity(`Deleted custom investigation: ${value}`);
+      fetchCustomInvestigations();
+    } catch (error: any) {
+      console.error('Error deleting investigation:', error);
+      alert('Failed to delete investigation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Generic handlers
   const getCurrentData = () => {
     switch (activeTab) {
@@ -832,6 +931,8 @@ export default function DrugOrder() {
         return customInstructions.map(i => ({ id: i.id, value: i.instruction_value }));
       case 'procedures':
         return customProcedures.map(p => ({ id: p.id, value: p.procedure_value }));
+      case 'investigations':
+        return customInvestigations.map(i => ({ id: i.id, value: i.investigation_value }));
       default:
         return [];
     }
@@ -847,6 +948,7 @@ export default function DrugOrder() {
       case 'diagnosis': return 'Diagnosis';
       case 'instructions': return 'Instruction';
       case 'procedures': return 'Procedure';
+      case 'investigations': return 'Investigation';
       default: return '';
     }
   };
@@ -861,6 +963,7 @@ export default function DrugOrder() {
       case 'diagnosis': return newDiagnosis;
       case 'instructions': return newInstruction;
       case 'procedures': return newProcedure;
+      case 'investigations': return newInvestigation;
       default: return '';
     }
   };
@@ -875,6 +978,7 @@ export default function DrugOrder() {
       case 'diagnosis': setNewDiagnosis(value); break;
       case 'instructions': setNewInstruction(value); break;
       case 'procedures': setNewProcedure(value); break;
+      case 'investigations': setNewInvestigation(value); break;
     }
   };
 
@@ -888,6 +992,7 @@ export default function DrugOrder() {
       case 'diagnosis': addDiagnosis(); break;
       case 'instructions': addInstruction(); break;
       case 'procedures': addProcedure(); break;
+      case 'investigations': addInvestigation(); break;
     }
   };
 
@@ -901,6 +1006,7 @@ export default function DrugOrder() {
       case 'diagnosis': updateDiagnosis(id); break;
       case 'instructions': updateInstruction(id); break;
       case 'procedures': updateProcedure(id); break;
+      case 'investigations': updateInvestigation(id); break;
     }
   };
 
@@ -914,6 +1020,7 @@ export default function DrugOrder() {
       case 'diagnosis': deleteDiagnosis(id, value); break;
       case 'instructions': deleteInstruction(id, value); break;
       case 'procedures': deleteProcedure(id, value); break;
+      case 'investigations': deleteInvestigation(id, value); break;
     }
   };
 
@@ -976,6 +1083,12 @@ export default function DrugOrder() {
           onClick={() => setActiveTab('procedures')}
         >
           Procedures
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'investigations' ? 'active' : ''}`}
+          onClick={() => setActiveTab('investigations')}
+        >
+          Investigations
         </button>
       </div>
 

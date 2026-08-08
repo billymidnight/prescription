@@ -220,3 +220,83 @@
     width: 100%;
   }
 }
+
+/* Investigations multiselect */
+.edit-prescription-modal .investigations-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem 1rem;
+  padding: 0.85rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.edit-prescription-modal .investigation-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-prescription-modal .investigation-option input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.edit-prescription-modal .investigation-custom-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.edit-prescription-modal .investigation-custom-row input {
+  flex: 1;
+}
+
+.edit-prescription-modal .investigation-custom-row button {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.edit-prescription-modal .investigation-custom-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-prescription-modal .investigations-empty {
+  padding: 0.85rem;
+  border: 1px dashed #ddd;
+  border-radius: 6px;
+  color: #777;
+  font-size: 0.85rem;
+}
+
+/* Search box above a multiselect picker */
+.edit-prescription-modal .picker-search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.edit-prescription-modal .picker-search-row input {
+  flex: 1;
+}
+
+.edit-prescription-modal .picker-search-row button {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  line-height: 1;
+}

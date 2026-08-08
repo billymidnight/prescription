@@ -29,6 +29,7 @@ interface Visit {
   weight: string;
   blood_pressure: string;
   pulse: string;
+  rbs: string;
 }
 
 export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit }: EditVisitModalProps) {
@@ -45,6 +46,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
     weight: '',
     blood_pressure: '',
     pulse: '',
+    rbs: '',
   });
   const [customProcedure, setCustomProcedure] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -65,6 +67,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
         weight: visit.weight || '',
         blood_pressure: visit.blood_pressure || '',
         pulse: visit.pulse || '',
+        rbs: visit.rbs || '',
       });
       
       // Check if current value is not in dropdown options
@@ -97,6 +100,7 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
           weight: formData.weight,
           blood_pressure: formData.blood_pressure,
           pulse: formData.pulse,
+          rbs: formData.rbs || null,
         })
         .eq('visit_id', visit.visit_id);
 
@@ -345,6 +349,16 @@ export default function EditVisitModal({ isOpen, onClose, onVisitUpdated, visit 
                 value={formData.pulse}
                 onChange={(e) => setFormData({ ...formData, pulse: e.target.value })}
                 placeholder="e.g. 72 bpm"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>RBS</label>
+              <input
+                type="text"
+                value={formData.rbs}
+                onChange={(e) => setFormData({ ...formData, rbs: e.target.value })}
+                placeholder="e.g. 110 mg/dL"
               />
             </div>
           </div>

@@ -33,8 +33,15 @@ interface Visit {
   weight: string;
   blood_pressure: string;
   pulse: string;
+  rbs: string;
   date: string;
 }
+
+// Staff-typed text is interpolated straight into the print document, so angle
+// brackets (e.g. "TSH <5") would otherwise be parsed as markup and silently
+// swallow the rest of the line.
+const escapeHtml = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 interface PrescriptionData {
   visit_id: string;
@@ -44,10 +51,10 @@ interface PrescriptionData {
   age: string;
   blood_pressure: string;
   pulse: string;
+  rbs: string;
   gender: string;
   weight: string;
   symptoms: string;
-  diagnosis: string;
   procedures: string;
   medicines: Medicine[];
 }
@@ -70,10 +77,10 @@ export default function Prescription() {
     age: '',
     blood_pressure: '',
     pulse: '',
+    rbs: '',
     gender: 'Male',
     weight: '',
     symptoms: '',
-    diagnosis: '',
     procedures: '',
     medicines: [],
   });
@@ -90,11 +97,24 @@ export default function Prescription() {
   const [customInstructionMode, setCustomInstructionMode] = useState(false);
 
   // Diagnosis dropdown (single select)
-  const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>(['CUSTOM']);
+  const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>([]);
   const [customDiagnosisMode, setCustomDiagnosisMode] = useState(false);
 
   // Review Date
   const [reviewDate, setReviewDate] = useState('');
+
+  // Investigations — multiselect, stored one row per value in
+  // prescription_investigations. Omitted from the printed prescription when empty.
+  const [selectedInvestigations, setSelectedInvestigations] = useState<string[]>([]);
+  const [investigationOptions, setInvestigationOptions] = useState<string[]>([]);
+  const [customInvestigationInput, setCustomInvestigationInput] = useState('');
+
+  // Diagnosis — multiselect, stored one row per value in prescription_diagnoses.
+  // prescriptions.diagnosis is still written on every save as a joined mirror so
+  // existing readers keep working and historical values are never orphaned.
+  const [selectedDiagnoses, setSelectedDiagnoses] = useState<string[]>([]);
+  const [customDiagnosisInput, setCustomDiagnosisInput] = useState('');
+  const [diagnosisSearch, setDiagnosisSearch] = useState('');
 
   const [medicineSearchTerms, setMedicineSearchTerms] = useState<Record<string, string>>({});
   const [showMedicineDropdown, setShowMedicineDropdown] = useState<Record<string, boolean>>({});
@@ -200,11 +220,9 @@ export default function Prescription() {
           .order('diagnosis_value', { ascending: true });
         
         if (diagnosisData && diagnosisData.length > 0) {
-          const values = diagnosisData.map(d => d.diagnosis_value);
-          setDiagnosisOptions([...values, 'CUSTOM']);
-          if (!formData.diagnosis) {
-            setFormData(prev => ({ ...prev, diagnosis: values[0] }));
-          }
+          // Multiselect: no 'CUSTOM' sentinel and no auto-selected first value.
+          // One-off values are added through their own input instead.
+          setDiagnosisOptions(diagnosisData.map(d => d.diagnosis_value));
         }
 
         // Fetch instructions
@@ -220,6 +238,19 @@ export default function Prescription() {
           if (!instructions) {
             setInstructions(values[0]);
           }
+        }
+
+        // Fetch investigations. This one is a multiselect with no default —
+        // selecting nothing is meaningful, as it keeps the Investigations block
+        // off the printed prescription. No 'CUSTOM' sentinel either; one-off
+        // values are added through their own input.
+        const { data: investigationsData } = await supabase
+          .from('custom_investigations')
+          .select('investigation_value')
+          .order('investigation_value', { ascending: true });
+
+        if (investigationsData && investigationsData.length > 0) {
+          setInvestigationOptions(investigationsData.map(i => i.investigation_value));
         }
 
         // Fetch procedures
@@ -259,6 +290,7 @@ export default function Prescription() {
         weight: '',
         blood_pressure: '',
         pulse: '',
+        rbs: '',
       });
       return;
     }
@@ -334,17 +366,19 @@ export default function Prescription() {
             .single();
 
           let loadedMedicines: Medicine[] = [];
-          
+          let loadedInvestigations: string[] = [];
+          let loadedDiagnoses: string[] = [];
+
           if (prescData) {
             // Prescription exists - load it for editing
             setExistingPrescriptionId(prescData.prescription_id);
-            
+
             // Load medicines
             const { data: medsData } = await supabase
               .from('prescription_medicines')
               .select('*')
               .eq('prescription_id', prescData.prescription_id);
-            
+
             if (medsData && medsData.length > 0) {
               loadedMedicines = medsData.map(med => ({
                 id: med.medicine_id.toString(),
@@ -354,6 +388,30 @@ export default function Prescription() {
                 areasite: med.areasite,
                 duration: med.duration,
               }));
+            }
+
+            // Load investigations
+            const { data: invData } = await supabase
+              .from('prescription_investigations')
+              .select('investigation_value')
+              .eq('prescription_id', prescData.prescription_id);
+
+            loadedInvestigations = (invData || []).map(inv => inv.investigation_value);
+
+            // Load diagnoses. Prescriptions written before the multiselect have
+            // no child rows, so fall back to the legacy text column and treat it
+            // as ONE diagnosis, exactly as typed — splitting it on commas would
+            // shred a historical entry like "Acne, post-inflammatory
+            // hyperpigmentation" into two diagnoses that were never made.
+            const { data: diagRows } = await supabase
+              .from('prescription_diagnoses')
+              .select('diagnosis_value')
+              .eq('prescription_id', prescData.prescription_id);
+
+            if (diagRows && diagRows.length > 0) {
+              loadedDiagnoses = diagRows.map(d => d.diagnosis_value);
+            } else if (prescData.diagnosis && prescData.diagnosis.trim()) {
+              loadedDiagnoses = [prescData.diagnosis.trim()];
             }
           } else {
             setExistingPrescriptionId(null);
@@ -369,8 +427,8 @@ export default function Prescription() {
             weight: visitData.weight || '',
             blood_pressure: visitData.blood_pressure || '',
             pulse: visitData.pulse || '',
+            rbs: visitData.rbs || '',
             symptoms: prescData?.symptoms || '',
-            diagnosis: prescData?.diagnosis || '',
             procedures: prescData?.procedures || '',
             medicines: loadedMedicines,
           });
@@ -382,6 +440,13 @@ export default function Prescription() {
           if (prescData?.review_date) {
             setReviewDate(prescData.review_date);
           }
+          // Assigned unconditionally so switching visits clears a previous
+          // visit's investigations instead of carrying them over.
+          setSelectedInvestigations(loadedInvestigations);
+          setCustomInvestigationInput('');
+          setSelectedDiagnoses(loadedDiagnoses);
+          setCustomDiagnosisInput('');
+          setDiagnosisSearch('');
 
         } else {
           console.error('❌ [fetchVisit] No patient data found for visit');
@@ -468,7 +533,9 @@ export default function Prescription() {
           .update({
             symptoms: formData.symptoms || null,
             findings: null,
-            diagnosis: formData.diagnosis || null,
+            // Joined mirror: keeps prescriptions.diagnosis readable and current
+            // for PatientCard, Scorp and existing reports.
+            diagnosis: selectedDiagnoses.join(', ') || null,
             procedures: formData.procedures || null,
             instructions: instructions || null,
             review_date: reviewDate || null,
@@ -492,7 +559,9 @@ export default function Prescription() {
             visit_id: parseInt(formData.visit_id),
             symptoms: formData.symptoms || null,
             findings: null,
-            diagnosis: formData.diagnosis || null,
+            // Joined mirror: keeps prescriptions.diagnosis readable and current
+            // for PatientCard, Scorp and existing reports.
+            diagnosis: selectedDiagnoses.join(', ') || null,
             procedures: formData.procedures || null,
             instructions: instructions || null,
             review_date: reviewDate || null,
@@ -521,6 +590,54 @@ export default function Prescription() {
           .insert(medicinesData);
 
         if (medError) throw medError;
+      }
+
+      // Replace investigations wholesale, mirroring how medicines are handled.
+      // The delete runs even when nothing is selected so clearing every
+      // investigation on an existing prescription actually persists.
+      if (prescriptionId) {
+        const { error: deleteInvError } = await supabase
+          .from('prescription_investigations')
+          .delete()
+          .eq('prescription_id', prescriptionId);
+
+        if (deleteInvError) throw deleteInvError;
+
+        if (selectedInvestigations.length > 0) {
+          const { error: invError } = await supabase
+            .from('prescription_investigations')
+            .insert(
+              selectedInvestigations.map(value => ({
+                prescription_id: prescriptionId,
+                investigation_value: value,
+              }))
+            );
+
+          if (invError) throw invError;
+        }
+
+        // Same for diagnoses. prescriptions.diagnosis was already updated above
+        // with the joined mirror, so the readable value survives even if this
+        // child-table write is rolled back or the table doesn't exist yet.
+        const { error: deleteDiagError } = await supabase
+          .from('prescription_diagnoses')
+          .delete()
+          .eq('prescription_id', prescriptionId);
+
+        if (deleteDiagError) throw deleteDiagError;
+
+        if (selectedDiagnoses.length > 0) {
+          const { error: diagError } = await supabase
+            .from('prescription_diagnoses')
+            .insert(
+              selectedDiagnoses.map(value => ({
+                prescription_id: prescriptionId,
+                diagnosis_value: value,
+              }))
+            );
+
+          if (diagError) throw diagError;
+        }
       }
 
       return true;
@@ -959,6 +1076,12 @@ export default function Prescription() {
               <span class="info-label">Weight:</span>
               <span class="info-value">${formData.weight ? formData.weight + ' Kg' : 'N/A'}</span>
             </div>
+            ${formData.rbs.trim() ? `
+            <div class="info-field">
+              <span class="info-label">RBS:</span>
+              <span class="info-value">${escapeHtml(formData.rbs)}</span>
+            </div>
+            ` : ''}
           </div>
 
           <div class="section">
@@ -968,13 +1091,20 @@ export default function Prescription() {
 
           <div class="section">
             <div class="section-title">Diagnosis</div>
-            <div class="section-content">${formData.diagnosis || 'No diagnosis recorded'}</div>
+            <div class="section-content">${selectedDiagnoses.length > 0 ? escapeHtml(selectedDiagnoses.join(', ')) : 'No diagnosis recorded'}</div>
           </div>
 
           <div class="section">
             <div class="section-title">Procedures</div>
             <div class="section-content">${formData.procedures || 'No procedures recorded'}</div>
           </div>
+
+          ${selectedInvestigations.length > 0 ? `
+          <div class="section">
+            <div class="section-title">Investigations</div>
+            <div class="section-content">${escapeHtml(selectedInvestigations.join(', '))}</div>
+          </div>
+          ` : ''}
 
           ${formData.medicines.length > 0 ? `
           <div class="section">
@@ -1067,6 +1197,62 @@ export default function Prescription() {
     };
   };
 
+  // A saved prescription may hold custom investigations that were never added
+  // to the managed list. Show them alongside the managed options so they stay
+  // visible and can be unticked.
+  const investigationChoices = [
+    ...investigationOptions,
+    ...selectedInvestigations.filter(value => !investigationOptions.includes(value)),
+  ];
+
+  const toggleInvestigation = (value: string) => {
+    setSelectedInvestigations(prev =>
+      prev.includes(value) ? prev.filter(item => item !== value) : [...prev, value]
+    );
+  };
+
+  const addCustomInvestigation = () => {
+    const value = customInvestigationInput.trim();
+    if (!value) return;
+    if (!selectedInvestigations.includes(value)) {
+      setSelectedInvestigations(prev => [...prev, value]);
+    }
+    setCustomInvestigationInput('');
+  };
+
+  // Same idea for diagnoses, and it does double duty here: a historical
+  // diagnosis loaded from the legacy text column is almost never an exact match
+  // for a managed option, so listing it keeps old prescriptions editable
+  // without silently dropping what was originally recorded.
+  const diagnosisChoices = [
+    ...diagnosisOptions,
+    ...selectedDiagnoses.filter(value => !diagnosisOptions.includes(value)),
+  ];
+
+  // Filter is purely a view over diagnosisChoices — ticks live in
+  // selectedDiagnoses, so narrowing or clearing the search never changes what is
+  // selected, and emptying the box brings the whole list straight back.
+  const visibleDiagnosisChoices = diagnosisSearch.trim()
+    ? diagnosisChoices.filter(value =>
+        value.toLowerCase().includes(diagnosisSearch.trim().toLowerCase())
+      )
+    : diagnosisChoices;
+
+  const toggleDiagnosis = (value: string) => {
+    setSelectedDiagnoses(prev =>
+      prev.includes(value) ? prev.filter(item => item !== value) : [...prev, value]
+    );
+  };
+
+  const addCustomDiagnosis = () => {
+    const value = customDiagnosisInput.trim();
+    if (!value) return;
+    if (!selectedDiagnoses.includes(value)) {
+      setSelectedDiagnoses(prev => [...prev, value]);
+    }
+    setCustomDiagnosisInput('');
+  };
+
   return (
     <div className="prescription-page">
       <div className="page-header">
@@ -1122,6 +1308,7 @@ export default function Prescription() {
                 <div><strong>Weight:</strong> {visit.weight || 'N/A'}</div>
                 <div><strong>BP:</strong> {visit.blood_pressure || 'N/A'}</div>
                 <div><strong>Pulse:</strong> {visit.pulse || 'N/A'}</div>
+                <div><strong>RBS:</strong> {visit.rbs || 'N/A'}</div>
               </div>
             </div>
           )}
@@ -1142,43 +1329,67 @@ export default function Prescription() {
           </div>
 
           <div className="form-group">
-            <label>Diagnosis</label>
-            {customDiagnosisMode ? (
-              <div>
-                <textarea
-                  name="diagnosis"
-                  value={formData.diagnosis}
-                  onChange={handleChange}
-                  placeholder="Enter custom diagnosis..."
-                  rows={4}
-                />
-                <button
-                  type="button"
-                  onClick={() => setCustomDiagnosisMode(false)}
-                  style={{ marginTop: '5px', fontSize: '12px' }}
-                >
-                  ← Back to dropdown
-                </button>
-              </div>
+            <label>Diagnosis {selectedDiagnoses.length > 0 && `(${selectedDiagnoses.length} selected)`}</label>
+            {diagnosisChoices.length === 0 ? (
+              <p className="investigations-empty">
+                No diagnoses configured yet — add them on the Drug Order page, or type one below.
+              </p>
             ) : (
-              <select
-                name="diagnosis"
-                value={formData.diagnosis}
-                onChange={(e) => {
-                  if (e.target.value === 'CUSTOM') {
-                    setCustomDiagnosisMode(true);
-                  } else {
-                    handleChange(e);
+              <>
+                <div className="picker-search-row">
+                  <input
+                    type="text"
+                    value={diagnosisSearch}
+                    onChange={(e) => setDiagnosisSearch(e.target.value)}
+                    placeholder={`Search ${diagnosisChoices.length} diagnoses...`}
+                  />
+                  {diagnosisSearch && (
+                    <button type="button" onClick={() => setDiagnosisSearch('')} title="Clear search">
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {visibleDiagnosisChoices.length === 0 ? (
+                  <p className="investigations-empty">
+                    No diagnosis matches "{diagnosisSearch}". Clear the search, or add it as a one-off below.
+                  </p>
+                ) : (
+                  <div className="investigations-picker">
+                    {visibleDiagnosisChoices.map((diag) => (
+                      <label key={diag} className="investigation-option">
+                        <input
+                          type="checkbox"
+                          checked={selectedDiagnoses.includes(diag)}
+                          onChange={() => toggleDiagnosis(diag)}
+                        />
+                        <span>{diag}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            <div className="investigation-custom-row">
+              <input
+                type="text"
+                value={customDiagnosisInput}
+                onChange={(e) => setCustomDiagnosisInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomDiagnosis();
                   }
                 }}
+                placeholder="Add a one-off diagnosis not in the list..."
+              />
+              <button
+                type="button"
+                onClick={addCustomDiagnosis}
+                disabled={!customDiagnosisInput.trim()}
               >
-                {diagnosisOptions.map((diag) => (
-                  <option key={diag} value={diag}>
-                    {diag}
-                  </option>
-                ))}
-              </select>
-            )}
+                + Add
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
@@ -1219,6 +1430,49 @@ export default function Prescription() {
                 ))}
               </select>
             )}
+          </div>
+
+          <div className="form-group">
+            <label>Investigations {selectedInvestigations.length > 0 && `(${selectedInvestigations.length} selected)`}</label>
+            {investigationChoices.length === 0 ? (
+              <p className="investigations-empty">
+                No investigations configured yet — add them on the Drug Order page, or type one below.
+              </p>
+            ) : (
+              <div className="investigations-picker">
+                {investigationChoices.map((inv) => (
+                  <label key={inv} className="investigation-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedInvestigations.includes(inv)}
+                      onChange={() => toggleInvestigation(inv)}
+                    />
+                    <span>{inv}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="investigation-custom-row">
+              <input
+                type="text"
+                value={customInvestigationInput}
+                onChange={(e) => setCustomInvestigationInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomInvestigation();
+                  }
+                }}
+                placeholder="Add a one-off investigation not in the list..."
+              />
+              <button
+                type="button"
+                onClick={addCustomInvestigation}
+                disabled={!customInvestigationInput.trim()}
+              >
+                + Add
+              </button>
+            </div>
           </div>
 
           <div className="form-group">

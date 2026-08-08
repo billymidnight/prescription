@@ -47,7 +47,7 @@ EXACT DATABASE SCHEMA (these are the real column names — use them exactly):
   patient_id (PK), name, sex ('M'/'F'), phone_no, year_of_birth, dob, pic_filename, hometown
 
 **visits** — Consultation visit records
-  visit_id (PK), patient_id (FK→patients), date (text YYYY-MM-DD), fullname, age, consultation_type, consultation_fee (float), drug_fee (float), Procedure_Fee (float), weight, blood_pressure, pulse, extra_procedures (text describing procedure name), new_old, paymentmethod, referral, created_at
+  visit_id (PK), patient_id (FK→patients), date (text YYYY-MM-DD), fullname, age, consultation_type, consultation_fee (float), drug_fee (float), Procedure_Fee (float), weight, blood_pressure, pulse, rbs (random blood sugar; NULL on visits recorded before it was added), extra_procedures (text describing procedure name), new_old, paymentmethod, referral, created_at
 
 **medicines** — Drug-only visit records (patient came ONLY for medicines, no consultation)
   med_id (PK), patient_id (FK→patients), patient_name, date, drug_fee, payment_method, created_at
@@ -91,7 +91,7 @@ def _fetch_clinic_context(client, user_query, history_context=""):
 
         # ── Always fetch ALL visits — this is the core table ──
         all_visits = client.table('visits').select(
-            'visit_id, patient_id, fullname, date, age, consultation_type, consultation_fee, drug_fee, Procedure_Fee, paymentmethod, new_old, extra_procedures, referral, weight, blood_pressure, pulse'
+            'visit_id, patient_id, fullname, date, age, consultation_type, consultation_fee, drug_fee, Procedure_Fee, paymentmethod, new_old, extra_procedures, referral, weight, blood_pressure, pulse, rbs'
         ).order('date', desc=True).limit(5000).execute()
         if all_visits.data:
             context_parts.append(f"ALL VISITS ({len(all_visits.data)} rows):\n{json.dumps(all_visits.data, default=str)}")

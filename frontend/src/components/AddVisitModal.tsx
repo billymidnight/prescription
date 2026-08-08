@@ -34,6 +34,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
     weight: '',
     blood_pressure: '',
     pulse: '',
+    rbs: '',
   });
   const [customProcedure, setCustomProcedure] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -160,6 +161,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
             weight: formData.weight || null,
             blood_pressure: formData.blood_pressure || null,
             pulse: formData.pulse || null,
+            rbs: formData.rbs || null,
           },
         ]);
 
@@ -181,6 +183,7 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
         weight: '',
         blood_pressure: '',
         pulse: '',
+        rbs: '',
       });
       if (!prefilledPatientId) {
         setPatientId('');
@@ -293,6 +296,17 @@ export default function AddVisitModal({ isOpen, onClose, onVisitAdded, prefilled
                 value={formData.pulse}
                 onChange={handleChange}
                 placeholder="e.g. 72 bpm"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>RBS</label>
+              <input
+                type="text"
+                name="rbs"
+                value={formData.rbs}
+                onChange={handleChange}
+                placeholder="e.g. 110 mg/dL"
               />
             </div>
           </div>

@@ -34,7 +34,6 @@ export default function EditPrescriptionModal({
 }: EditPrescriptionModalProps) {
   const [formData, setFormData] = useState({
     symptoms: '',
-    diagnosis: '',
     procedures: '',
     medicines: [] as Medicine[],
   });
@@ -53,12 +52,25 @@ export default function EditPrescriptionModal({
   const [customInstructionMode, setCustomInstructionMode] = useState(false);
   
   // Diagnosis dropdown (single select)
-  const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>(['CUSTOM']);
+  const [diagnosisOptions, setDiagnosisOptions] = useState<string[]>([]);
   const [customDiagnosisMode, setCustomDiagnosisMode] = useState(false);
 
   // Review Date
   const [reviewDate, setReviewDate] = useState('');
-  
+
+  // Investigations — multiselect, stored one row per value in
+  // prescription_investigations. Empty on prescriptions written before this existed.
+  const [selectedInvestigations, setSelectedInvestigations] = useState<string[]>([]);
+  const [investigationOptions, setInvestigationOptions] = useState<string[]>([]);
+  const [customInvestigationInput, setCustomInvestigationInput] = useState('');
+
+  // Diagnosis — multiselect, stored one row per value in prescription_diagnoses.
+  // prescriptions.diagnosis is still written on every save as a joined mirror so
+  // existing readers keep working and historical values are never orphaned.
+  const [selectedDiagnoses, setSelectedDiagnoses] = useState<string[]>([]);
+  const [customDiagnosisInput, setCustomDiagnosisInput] = useState('');
+  const [diagnosisSearch, setDiagnosisSearch] = useState('');
+
   // Dynamic dropdown options from database
   const [quantityOptions, setQuantityOptions] = useState<string[]>(['1', '2', 'N/A', 'CUSTOM']);
   const [timeOptions, setTimeOptions] = useState<string[]>(['After Meal (Morning)', 'After Meal (Evening)', 'Before Food', 'After Food', 'CUSTOM']);
@@ -153,8 +165,8 @@ export default function EditPrescriptionModal({
         .order('diagnosis_value', { ascending: true });
       
       if (diagnosisData && diagnosisData.length > 0) {
-        const values = diagnosisData.map(d => d.diagnosis_value);
-        setDiagnosisOptions([...values, 'CUSTOM']);
+        // Multiselect: no 'CUSTOM' sentinel, one-off values get their own input.
+        setDiagnosisOptions(diagnosisData.map(d => d.diagnosis_value));
       }
 
       // Fetch instructions
@@ -166,6 +178,17 @@ export default function EditPrescriptionModal({
       if (instructionsData && instructionsData.length > 0) {
         const values = instructionsData.map(i => i.instruction_value);
         setInstructionOptions([...values, 'CUSTOM']);
+      }
+
+      // Fetch investigations. Multiselect with no default — selecting nothing
+      // is meaningful, as it keeps the block off the printed prescription.
+      const { data: investigationsData } = await supabase
+        .from('custom_investigations')
+        .select('investigation_value')
+        .order('investigation_value', { ascending: true });
+
+      if (investigationsData && investigationsData.length > 0) {
+        setInvestigationOptions(investigationsData.map(i => i.investigation_value));
       }
 
       // Fetch procedures
@@ -214,7 +237,6 @@ export default function EditPrescriptionModal({
 
       setFormData({
         symptoms: prescData.symptoms || '',
-        diagnosis: prescData.diagnosis || '',
         procedures: prescData.procedures || '',
         medicines: loadedMedicines,
       });
@@ -226,6 +248,34 @@ export default function EditPrescriptionModal({
       if (prescData.review_date) {
         setReviewDate(prescData.review_date);
       }
+      // Load investigations. Assigned unconditionally so reopening the modal
+      // for a different prescription clears the previous one's values.
+      const { data: invData } = await supabase
+        .from('prescription_investigations')
+        .select('investigation_value')
+        .eq('prescription_id', prescriptionId);
+
+      setSelectedInvestigations((invData || []).map(inv => inv.investigation_value));
+      setCustomInvestigationInput('');
+
+      // Load diagnoses. Prescriptions written before the multiselect have no
+      // child rows, so fall back to the legacy text column and treat it as ONE
+      // diagnosis, exactly as typed — splitting on commas would shred a
+      // historical entry into diagnoses that were never made.
+      const { data: diagRows } = await supabase
+        .from('prescription_diagnoses')
+        .select('diagnosis_value')
+        .eq('prescription_id', prescriptionId);
+
+      if (diagRows && diagRows.length > 0) {
+        setSelectedDiagnoses(diagRows.map(d => d.diagnosis_value));
+      } else if (prescData.diagnosis && prescData.diagnosis.trim()) {
+        setSelectedDiagnoses([prescData.diagnosis.trim()]);
+      } else {
+        setSelectedDiagnoses([]);
+      }
+      setCustomDiagnosisInput('');
+      setDiagnosisSearch('');
     } catch (err) {
       console.error('Error loading prescription:', err);
       alert('Failed to load prescription data');
@@ -304,6 +354,21 @@ export default function EditPrescriptionModal({
 
       if (deleteMedsError) throw deleteMedsError;
 
+      // Then its investigations (no FK cascade, so clean up explicitly)
+      const { error: deleteInvsError } = await supabase
+        .from('prescription_investigations')
+        .delete()
+        .eq('prescription_id', prescriptionId);
+
+      if (deleteInvsError) throw deleteInvsError;
+
+      const { error: deleteDiagsError } = await supabase
+        .from('prescription_diagnoses')
+        .delete()
+        .eq('prescription_id', prescriptionId);
+
+      if (deleteDiagsError) throw deleteDiagsError;
+
       // Then delete the prescription itself
       const { error: deletePrescError } = await supabase
         .from('prescriptions')
@@ -335,7 +400,9 @@ export default function EditPrescriptionModal({
         .update({
           symptoms: formData.symptoms || null,
           findings: null,
-          diagnosis: formData.diagnosis || null,
+          // Joined mirror: keeps prescriptions.diagnosis readable and current
+          // for PatientCard, Scorp and existing reports.
+          diagnosis: selectedDiagnoses.join(', ') || null,
           procedures: formData.procedures || null,
           instructions: instructions || null,
           review_date: reviewDate || null,
@@ -370,6 +437,51 @@ export default function EditPrescriptionModal({
         if (insertError) throw insertError;
       }
 
+      // Replace investigations wholesale, mirroring how medicines are handled.
+      // The delete runs even when nothing is selected so clearing every
+      // investigation actually persists.
+      const { error: deleteInvError } = await supabase
+        .from('prescription_investigations')
+        .delete()
+        .eq('prescription_id', prescriptionId);
+
+      if (deleteInvError) throw deleteInvError;
+
+      if (selectedInvestigations.length > 0) {
+        const { error: invError } = await supabase
+          .from('prescription_investigations')
+          .insert(
+            selectedInvestigations.map((value) => ({
+              prescription_id: prescriptionId,
+              investigation_value: value,
+            }))
+          );
+
+        if (invError) throw invError;
+      }
+
+      // Same for diagnoses. prescriptions.diagnosis was already updated above
+      // with the joined mirror, so the readable value survives regardless.
+      const { error: deleteDiagError } = await supabase
+        .from('prescription_diagnoses')
+        .delete()
+        .eq('prescription_id', prescriptionId);
+
+      if (deleteDiagError) throw deleteDiagError;
+
+      if (selectedDiagnoses.length > 0) {
+        const { error: diagError } = await supabase
+          .from('prescription_diagnoses')
+          .insert(
+            selectedDiagnoses.map((value) => ({
+              prescription_id: prescriptionId,
+              diagnosis_value: value,
+            }))
+          );
+
+        if (diagError) throw diagError;
+      }
+
       // Log activity
       await logActivity(`Edited Prescription (Prescription ID: ${prescriptionId}, ${formData.medicines.length} medicines prescribed)`);
 
@@ -385,6 +497,62 @@ export default function EditPrescriptionModal({
   };
 
   if (!isOpen) return null;
+
+  // A saved prescription may hold custom investigations that were never added
+  // to the managed list. Show them alongside the managed options so they stay
+  // visible and can be unticked.
+  const investigationChoices = [
+    ...investigationOptions,
+    ...selectedInvestigations.filter((value) => !investigationOptions.includes(value)),
+  ];
+
+  const toggleInvestigation = (value: string) => {
+    setSelectedInvestigations((prev) =>
+      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+    );
+  };
+
+  const addCustomInvestigation = () => {
+    const value = customInvestigationInput.trim();
+    if (!value) return;
+    if (!selectedInvestigations.includes(value)) {
+      setSelectedInvestigations((prev) => [...prev, value]);
+    }
+    setCustomInvestigationInput('');
+  };
+
+  // Same idea for diagnoses, and it does double duty here: a historical
+  // diagnosis loaded from the legacy text column is almost never an exact match
+  // for a managed option, so listing it keeps old prescriptions editable
+  // without silently dropping what was originally recorded.
+  const diagnosisChoices = [
+    ...diagnosisOptions,
+    ...selectedDiagnoses.filter((value) => !diagnosisOptions.includes(value)),
+  ];
+
+  // Filter is purely a view over diagnosisChoices — ticks live in
+  // selectedDiagnoses, so narrowing or clearing the search never changes what is
+  // selected, and emptying the box brings the whole list straight back.
+  const visibleDiagnosisChoices = diagnosisSearch.trim()
+    ? diagnosisChoices.filter((value) =>
+        value.toLowerCase().includes(diagnosisSearch.trim().toLowerCase())
+      )
+    : diagnosisChoices;
+
+  const toggleDiagnosis = (value: string) => {
+    setSelectedDiagnoses((prev) =>
+      prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+    );
+  };
+
+  const addCustomDiagnosis = () => {
+    const value = customDiagnosisInput.trim();
+    if (!value) return;
+    if (!selectedDiagnoses.includes(value)) {
+      setSelectedDiagnoses((prev) => [...prev, value]);
+    }
+    setCustomDiagnosisInput('');
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -413,44 +581,67 @@ export default function EditPrescriptionModal({
               </div>
 
               <div className="form-group">
-                <label>Diagnosis</label>
-                {customDiagnosisMode ? (
-                  <div>
-                    <textarea
-                      name="diagnosis"
-                      value={formData.diagnosis}
-                      onChange={handleChange}
-                      placeholder="Enter custom diagnosis..."
-                      rows={4}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setCustomDiagnosisMode(false)}
-                      style={{ marginTop: '5px', fontSize: '12px' }}
-                    >
-                      ← Back to dropdown
-                    </button>
-                  </div>
+                <label>Diagnosis {selectedDiagnoses.length > 0 && `(${selectedDiagnoses.length} selected)`}</label>
+                {diagnosisChoices.length === 0 ? (
+                  <p className="investigations-empty">
+                    No diagnoses configured yet — add them on the Drug Order page, or type one below.
+                  </p>
                 ) : (
-                  <select
-                    name="diagnosis"
-                    value={formData.diagnosis}
-                    onChange={(e) => {
-                      if (e.target.value === 'CUSTOM') {
-                        setCustomDiagnosisMode(true);
-                      } else {
-                        handleChange(e);
+                  <>
+                    <div className="picker-search-row">
+                      <input
+                        type="text"
+                        value={diagnosisSearch}
+                        onChange={(e) => setDiagnosisSearch(e.target.value)}
+                        placeholder={`Search ${diagnosisChoices.length} diagnoses...`}
+                      />
+                      {diagnosisSearch && (
+                        <button type="button" onClick={() => setDiagnosisSearch('')} title="Clear search">
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    {visibleDiagnosisChoices.length === 0 ? (
+                      <p className="investigations-empty">
+                        No diagnosis matches "{diagnosisSearch}". Clear the search, or add it as a one-off below.
+                      </p>
+                    ) : (
+                      <div className="investigations-picker">
+                        {visibleDiagnosisChoices.map((diag) => (
+                          <label key={diag} className="investigation-option">
+                            <input
+                              type="checkbox"
+                              checked={selectedDiagnoses.includes(diag)}
+                              onChange={() => toggleDiagnosis(diag)}
+                            />
+                            <span>{diag}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="investigation-custom-row">
+                  <input
+                    type="text"
+                    value={customDiagnosisInput}
+                    onChange={(e) => setCustomDiagnosisInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomDiagnosis();
                       }
                     }}
-                    style={{ width: '100%' }}
+                    placeholder="Add a one-off diagnosis not in the list..."
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomDiagnosis}
+                    disabled={!customDiagnosisInput.trim()}
                   >
-                    {diagnosisOptions.map((diag) => (
-                      <option key={diag} value={diag}>
-                        {diag}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                    + Add
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">
@@ -492,6 +683,49 @@ export default function EditPrescriptionModal({
                     ))}
                   </select>
                 )}
+              </div>
+
+              <div className="form-group">
+                <label>Investigations {selectedInvestigations.length > 0 && `(${selectedInvestigations.length} selected)`}</label>
+                {investigationChoices.length === 0 ? (
+                  <p className="investigations-empty">
+                    No investigations configured yet — add them on the Drug Order page, or type one below.
+                  </p>
+                ) : (
+                  <div className="investigations-picker">
+                    {investigationChoices.map((inv) => (
+                      <label key={inv} className="investigation-option">
+                        <input
+                          type="checkbox"
+                          checked={selectedInvestigations.includes(inv)}
+                          onChange={() => toggleInvestigation(inv)}
+                        />
+                        <span>{inv}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <div className="investigation-custom-row">
+                  <input
+                    type="text"
+                    value={customInvestigationInput}
+                    onChange={(e) => setCustomInvestigationInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCustomInvestigation();
+                      }
+                    }}
+                    placeholder="Add a one-off investigation not in the list..."
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomInvestigation}
+                    disabled={!customInvestigationInput.trim()}
+                  >
+                    + Add
+                  </button>
+                </div>
               </div>
 
               <div className="form-group">

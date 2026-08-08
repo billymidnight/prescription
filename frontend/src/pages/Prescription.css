@@ -395,3 +395,86 @@
     gap: 0.75rem;
   }
 }
+
+/* Investigations multiselect */
+.investigations-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.5rem 1rem;
+  padding: 0.85rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-main);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.investigation-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.investigation-option input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.investigation-custom-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.investigation-custom-row input {
+  flex: 1;
+}
+
+.investigation-custom-row button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.investigation-custom-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.investigations-empty {
+  padding: 0.85rem;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Search box above a multiselect picker */
+.picker-search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.picker-search-row input {
+  flex: 1;
+}
+
+.picker-search-row button {
+  padding: 0.5rem 0.85rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  cursor: pointer;
+  line-height: 1;
+}

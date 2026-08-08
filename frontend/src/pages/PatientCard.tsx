@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
 import { logActivity } from '../lib/activityLog';
+import { formatAge } from '../lib/age';
 import EditPatientModal from '../components/EditPatientModal';
 import AddVisitModal from '../components/AddVisitModal';
 import AddMedicineModal from '../components/AddMedicineModal';
@@ -31,6 +32,7 @@ interface Visit {
   weight?: string;
   blood_pressure?: string;
   pulse?: string;
+  rbs?: string;
 }
 
 interface PrescriptionMedicine {
@@ -50,6 +52,7 @@ interface Prescription {
   findings: string;
   diagnosis: string;
   procedures: string;
+  investigations?: string;
   review_date?: string;
   instructions?: string;
   created_at: string;
@@ -311,20 +314,6 @@ export default function PatientCard() {
     }
   };
 
-  const calculateAge = (yearOfBirth: number, dob?: string | null) => {
-    if (dob) {
-      const birthDate = new Date(dob);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    }
-    return new Date().getFullYear() - yearOfBirth;
-  };
-
   const formatDob = (dob: string) => {
     const date = new Date(dob);
     const day = date.getDate();
@@ -483,7 +472,7 @@ export default function PatientCard() {
                 <strong>ID:</strong> {patient.patient_id}
               </span>
               <span className="meta-item">
-                <strong>Age:</strong> {calculateAge(patient.year_of_birth, patient.dob)} years
+                <strong>Age:</strong> {formatAge(patient.dob, patient.year_of_birth)}
               </span>
               <span className="meta-item">
                 <strong>Gender:</strong> {patient.sex === 'M' ? 'Male' : 'Female'}
@@ -656,6 +645,9 @@ export default function PatientCard() {
                             <div className="vital-item">
                               <strong>Pulse:</strong> {visit.pulse || 'N/A'}
                             </div>
+                            <div className="vital-item">
+                              <strong>RBS:</strong> {visit.rbs || 'N/A'}
+                            </div>
                           </div>
 
                           <div className="prescription-section">
@@ -671,6 +663,11 @@ export default function PatientCard() {
                           <div className="prescription-section">
                             <strong>Procedures:</strong>
                             <p className="prescription-text">{prescriptions[visit.visit_id].procedures || 'N/A'}</p>
+                          </div>
+
+                          <div className="prescription-section">
+                            <strong>Investigations:</strong>
+                            <p className="prescription-text">{prescriptions[visit.visit_id].investigations || 'N/A'}</p>
                           </div>
 
                           {prescriptions[visit.visit_id].review_date && (

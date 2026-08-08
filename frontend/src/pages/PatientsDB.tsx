@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
+import { formatAge } from '../lib/age';
 import AddPatientModal from '../components/AddPatientModal';
 import './PatientsDB.css';
 
@@ -80,10 +81,6 @@ export default function PatientsDB() {
   }, [currentPage, genderFilter, searchName, searchPhone]);
 
   const totalPages = Math.ceil(totalCount / patientsPerPage);
-
-  const calculateAge = (yearOfBirth: number) => {
-    return new Date().getFullYear() - yearOfBirth;
-  };
 
   const handlePrevPage = () => {
     if (currentPage > 1) {
@@ -229,7 +226,7 @@ export default function PatientsDB() {
                   <div className="info-row">
                     <span className="info-label">Age:</span>
                     <span className="info-value">
-                      {calculateAge(patient.year_of_birth)} years (Born {patient.year_of_birth})
+                      {formatAge(patient.dob, patient.year_of_birth)} (Born {patient.year_of_birth})
                     </span>
                   </div>
 
