@@ -1,0 +1,41 @@
+/* Age rendered as "23Y, 8M, 15D" — numbers carry the weight, unit letters recede. */
+
+.age-display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.age-part {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.age-number {
+  font-weight: 700;
+  color: var(--text-primary);
+  /* Digits share a fixed width so ages don't jitter between rows in a list. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* No gap before the letter — it reads as one token, separated by style alone. */
+.age-unit {
+  margin-left: 0;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.age-separator {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.age-display-unknown {
+  color: var(--text-secondary);
+  font-style: italic;
+}

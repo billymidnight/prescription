@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
-import { formatAge } from '../lib/age';
+import AgeDisplay from '../components/AgeDisplay';
 import AddPatientModal from '../components/AddPatientModal';
 import './PatientsDB.css';
 
@@ -226,7 +226,7 @@ export default function PatientsDB() {
                   <div className="info-row">
                     <span className="info-label">Age:</span>
                     <span className="info-value">
-                      {formatAge(patient.dob, patient.year_of_birth)} (Born {patient.year_of_birth})
+                      <AgeDisplay dob={patient.dob} yearOfBirth={patient.year_of_birth} /> (Born {patient.year_of_birth})
                     </span>
                   </div>
 

@@ -67,7 +67,10 @@ export function getDetailedAge(dob: string, today: Date = new Date()): DetailedA
 }
 
 /**
- * Age formatted for display, e.g. "23 Y, 8 M, 15 D".
+ * Age as a plain string, e.g. "23Y, 8M, 15D".
+ *
+ * For on-screen use prefer the AgeDisplay component, which styles the numbers
+ * and unit letters separately. This is for contexts that need a bare string.
  *
  * Falls back to years-only when the patient predates the `dob` column and only
  * `year_of_birth` is on record — there is no day or month to be precise about.
@@ -75,8 +78,8 @@ export function getDetailedAge(dob: string, today: Date = new Date()): DetailedA
 export function formatAge(dob?: string | null, yearOfBirth?: number | null): string {
   if (dob) {
     const age = getDetailedAge(dob);
-    if (age) return `${age.years} Y, ${age.months} M, ${age.days} D`;
+    if (age) return `${age.years}Y, ${age.months}M, ${age.days}D`;
   }
-  if (yearOfBirth) return `${new Date().getFullYear() - yearOfBirth} Y`;
+  if (yearOfBirth) return `${new Date().getFullYear() - yearOfBirth}Y`;
   return 'N/A';
 }

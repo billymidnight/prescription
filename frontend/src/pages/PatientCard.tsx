@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import supabase, { getPatientImageUrl } from '../lib/supabaseClient';
 import { logActivity } from '../lib/activityLog';
-import { formatAge } from '../lib/age';
+import AgeDisplay from '../components/AgeDisplay';
 import EditPatientModal from '../components/EditPatientModal';
 import AddVisitModal from '../components/AddVisitModal';
 import AddMedicineModal from '../components/AddMedicineModal';
@@ -472,7 +472,7 @@ export default function PatientCard() {
                 <strong>ID:</strong> {patient.patient_id}
               </span>
               <span className="meta-item">
-                <strong>Age:</strong> {formatAge(patient.dob, patient.year_of_birth)}
+                <strong>Age:</strong> <AgeDisplay dob={patient.dob} yearOfBirth={patient.year_of_birth} />
               </span>
               <span className="meta-item">
                 <strong>Gender:</strong> {patient.sex === 'M' ? 'Male' : 'Female'}
