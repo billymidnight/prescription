@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { logActivity } from '../lib/activityLog';
+import { formatPrescriptionAge } from '../lib/age';
 import './Prescription.css';
 
 interface CustomMedicine {
@@ -23,6 +24,7 @@ interface Patient {
   name: string;
   sex: string;
   year_of_birth: number;
+  dob: string | null;
   phone_no: string;
   hometown: string;
 }
@@ -261,11 +263,9 @@ export default function Prescription() {
         
         if (proceduresData && proceduresData.length > 0) {
           const values = proceduresData.map(p => p.procedure_value);
+          // No default selection: an empty value means "no procedures" and
+          // keeps the Procedures section off the printed prescription.
           setProcedureOptions([...values, 'CUSTOM']);
-          // Set default value if empty
-          if (!formData.procedures) {
-            setFormData(prev => ({ ...prev, procedures: values[0] }));
-          }
         }
       } catch (error) {
         console.error('Error fetching dropdown options:', error);
@@ -356,7 +356,7 @@ export default function Prescription() {
         if (patientData) {
           setPatient(patientData);
           console.log('✅ [fetchVisit] Set patient state');
-          const age = new Date().getFullYear() - patientData.year_of_birth;
+          const age = formatPrescriptionAge(patientData.dob, patientData.year_of_birth);
           
           // Check if prescription already exists for this visit
           const { data: prescData } = await supabase
@@ -422,7 +422,7 @@ export default function Prescription() {
             visit_id: visitId,
             patient_id: visitData.patient_id?.toString() || patientData.patient_id.toString(),
             patient_name: patientData.name,
-            age: age.toString(),
+            age,
             gender: patientData.sex === 'M' ? 'Male' : 'Female',
             weight: visitData.weight || '',
             blood_pressure: visitData.blood_pressure || '',
@@ -1058,7 +1058,7 @@ export default function Prescription() {
             </div>
             <div class="info-field">
               <span class="info-label">Age:</span>
-              <span class="info-value">${formData.age ? formData.age + ' Years' : 'N/A'}</span>
+              <span class="info-value">${formData.age || 'N/A'}</span>
             </div>
             <div class="info-field">
               <span class="info-label">Blood Pressure:</span>
@@ -1094,10 +1094,12 @@ export default function Prescription() {
             <div class="section-content">${selectedDiagnoses.length > 0 ? escapeHtml(selectedDiagnoses.join(', ')) : 'No diagnosis recorded'}</div>
           </div>
 
+          ${formData.procedures.trim() ? `
           <div class="section">
             <div class="section-title">Procedures</div>
-            <div class="section-content">${formData.procedures || 'No procedures recorded'}</div>
+            <div class="section-content">${escapeHtml(formData.procedures)}</div>
           </div>
+          ` : ''}
 
           ${selectedInvestigations.length > 0 ? `
           <div class="section">
@@ -1423,6 +1425,7 @@ export default function Prescription() {
                   }
                 }}
               >
+                <option value="">None</option>
                 {procedureOptions.map((proc) => (
                   <option key={proc} value={proc}>
                     {proc}

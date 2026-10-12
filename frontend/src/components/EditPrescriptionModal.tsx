@@ -676,6 +676,7 @@ export default function EditPrescriptionModal({
                     }}
                     style={{ width: '100%' }}
                   >
+                    <option value="">None</option>
                     {procedureOptions.map((proc) => (
                       <option key={proc} value={proc}>
                         {proc}

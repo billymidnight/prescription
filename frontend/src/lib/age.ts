@@ -75,6 +75,28 @@ export function getDetailedAge(dob: string, today: Date = new Date()): DetailedA
  * Falls back to years-only when the patient predates the `dob` column and only
  * `year_of_birth` is on record — there is no day or month to be precise about.
  */
+const plural = (value: number, unit: string) => `${value} ${unit}${value === 1 ? '' : 's'}`;
+
+/**
+ * Age for the printed prescription: whole years from 1 year up, but months and
+ * days for infants, where "0 Years" would tell the doctor nothing — e.g.
+ * "34 Years", "5 Months, 12 Days", "18 Days".
+ *
+ * Patients with only `year_of_birth` on record have no month or day to work
+ * from, so they always get years.
+ */
+export function formatPrescriptionAge(dob?: string | null, yearOfBirth?: number | null): string {
+  const detailed = dob ? getDetailedAge(dob) : null;
+  if (detailed) {
+    if (detailed.years >= 1) return plural(detailed.years, 'Year');
+    if (detailed.months === 0) return plural(detailed.days, 'Day');
+    if (detailed.days === 0) return plural(detailed.months, 'Month');
+    return `${plural(detailed.months, 'Month')}, ${plural(detailed.days, 'Day')}`;
+  }
+  if (yearOfBirth) return plural(new Date().getFullYear() - yearOfBirth, 'Year');
+  return '';
+}
+
 export function formatAge(dob?: string | null, yearOfBirth?: number | null): string {
   if (dob) {
     const age = getDetailedAge(dob);
